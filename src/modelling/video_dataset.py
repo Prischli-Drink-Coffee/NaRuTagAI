@@ -12,27 +12,35 @@ from torchvision import transforms
 from torch.utils.data import Dataset
 from scipy.sparse import csr_matrix
 from sklearn.model_selection import train_test_split
-from transformers import AutoTokenizer, DataCollatorForLanguageModeling
-
 
 from src import path_to_project
 from src.utils.custom_logging import setup_logging
 from src.utils.seed import seed_everything
+from transformers import AutoTokenizer, DataCollatorForLanguageModeling
 from src.utils.config_parser import ConfigParser
 from src import path_to_config
+
 from src.utils.string_filtration import process_single_text
 
 
 log = setup_logging()
 config = ConfigParser.parse(path_to_config())
-train_config = config.get('Dataset', {})
+train_config = config.get('TrainParam', {})
+if train_config['task'] == 'txt2cat':
+    text_tokenizer = AutoTokenizer.from_pretrained(train_config['pretrained_weight_bert_class'],
+                                                   legacy=True,
+                                                   use_fast=train_config['use_fast_tokenizer'],
+                                                   clean_up_tokenization_spaces=train_config['clean_up_tokenization_spaces'])
+    data_collator = DataCollatorForLanguageModeling(tokenizer=text_tokenizer, mlm=True, mlm_probability=0.2)
+elif train_config['task'] == 'txt2tag':
+    text_tokenizer = AutoTokenizer.from_pretrained(train_config['pretrained_weight_tag'],
+                                                   legacy=True,
+                                                   use_fast=train_config['use_fast_tokenizer'],
+                                                   clean_up_tokenization_spaces=train_config['clean_up_tokenization_spaces'])
+    data_collator = DataCollatorForLanguageModeling(tokenizer=text_tokenizer, mlm=False, mlm_probability=0.2)
+else:
+    raise ValueError
 
-text_tokenizer = AutoTokenizer.from_pretrained(train_config['pretrained_text_model'],
-                                                legacy=True,
-                                                use_fast=train_config['use_fast_tokenizer'],
-                                                clean_up_tokenization_spaces=train_config['clean_up_tokenization_spaces'])
-
-data_collator = DataCollatorForLanguageModeling(tokenizer=text_tokenizer, mlm=False, mlm_probability=0.2)
 
 def select_frames(images: torch.Tensor) -> torch.Tensor:
 
@@ -59,72 +67,79 @@ def collate_fn(batch, use_lemmatization=False, use_augmentation=False):
         'description_attention_mask': [],
         'tags': [],
         'tags_attention_mask': [],
+        'category': [],
+        'category_id': [],
         'tags_ids': []
     }
 
     # Собираем все тексты из батча с применением аугментации, если нужно
     all_titles = [process_single_text(sample['title'], use_lemmatization, use_augmentation) for sample in batch]
     all_descriptions = [process_single_text(sample['description'], use_lemmatization, use_augmentation) for sample in batch]
-    all_tags = [", ".join(sample['tags']) for sample in batch]
+    all_tags = [sample['tags'] for sample in batch]
 
     # Токенизация всех текстов батча
     title_tokens = text_tokenizer(all_titles, padding=True, truncation=True, return_tensors="pt",
                                   max_length=train_config['max_title_length'])
     description_tokens = text_tokenizer(all_descriptions, padding=True, truncation=True, return_tensors="pt",
                                         max_length=train_config['max_description_length'])
-    # tags_tokens = text_tokenizer(all_tags, padding=True, truncation=True, return_tensors="pt",
-    #                              max_length=train_config['max_tag_length'])
+    tags_tokens = text_tokenizer(all_tags, padding=True, truncation=True, return_tensors="pt",
+                                 max_length=train_config['max_tag_length'])
 
     # Находим максимальную длину аудио данных в батче
-    max_len = max([torch.tensor(sample['audio']).size(0) for sample in batch])
+    # max_len = max([torch.tensor(sample['audio']).size(0) for sample in batch])
 
     for i, sample in enumerate(batch):
-        video_ids = sample['video_id']
-        tags = sample['tags']
-        tags_ids = sample['tags_ids']
-        audio = torch.tensor(sample['audio'], dtype=torch.float32)
-        images = sample['images']
+        # video_ids = sample['video_id']
+        categories = sample['category']
+        # tags_ids = torch.tensor(sample['tags_ids'])
+        # audio = torch.tensor(sample['audio'], dtype=torch.float32)
+        category_ids = sample['category_id']
+        # images = sample['images']
 
         # Отбираем только каждый 16 кадр
-        images = select_frames(images)
+        # images = select_frames(images)
 
         # Паддинг аудио данных до максимальной длины
-        padded_audio = F.pad(audio, (0, max_len - audio.size(0)))
+        # padded_audio = F.pad(audio, (0, max_len - audio.size(0)))
 
         # Создаем маски для аудио
-        mask = torch.ones(audio.size(0), dtype=torch.float32)
-        padded_mask = F.pad(mask, (0, max_len - mask.size(0)), value=0)
+        # mask = torch.ones(audio.size(0), dtype=torch.float32)
+        # padded_mask = F.pad(mask, (0, max_len - mask.size(0)), value=0)
 
         # Добавляем данные в batch
-        process_batch['video_id'].append(video_ids)
-        process_batch['images'].append(images)
-        process_batch['audio'].append(padded_audio)
-        process_batch['audio_mask'].append(padded_mask)
+        # process_batch['video_id'].append(video_ids)
+        # process_batch['images'].append(images)
+        # process_batch['audio'].append(padded_audio)
+        # process_batch['audio_mask'].append(padded_mask)
         process_batch['title'].append(title_tokens['input_ids'][i])
         process_batch['title_attention_mask'].append(title_tokens['attention_mask'][i])
         process_batch['description'].append(description_tokens['input_ids'][i])
         process_batch['description_attention_mask'].append(description_tokens['attention_mask'][i])
-        process_batch['tags'].append(tags)
-        # process_batch['tags_attention_mask'].append(tags_tokens['attention_mask'][i])
-        process_batch['tags_ids'].append(tags_ids)
+        process_batch['tags'].append(tags_tokens['input_ids'][i])
+        process_batch['tags_attention_mask'].append(tags_tokens['attention_mask'][i])
+        process_batch['category'].append(categories)
+        process_batch['category_id'].append(category_ids)
+        # process_batch['tags_ids'].append(tags_ids)
+
+    # Преобразуем category_id в один тензор после итерации
+    process_batch['category_id'] = torch.tensor(process_batch['category_id'])
 
     # Преобразуем остальные списки в тензоры с добавлением новой размерности для батча
+    # process_batch['images'] = torch.stack(process_batch['images'])
+    # process_batch['audio'] = torch.stack(process_batch['audio'])
+    # process_batch['audio_mask'] = torch.stack(process_batch['audio_mask'])
     if train_config["use_random_token_mask"]:
         process_batch['title'] = data_collator(process_batch['title'])['input_ids']
         process_batch['description'] = data_collator(process_batch['description'])['input_ids']
-        # process_batch['tags'] = data_collator(process_batch['tags'])['input_ids']
+        process_batch['tags'] = data_collator(process_batch['tags'])['input_ids']
     else:
         process_batch['title'] = torch.stack(process_batch['title'])
         process_batch['description'] = torch.stack(process_batch['description'])
-        # process_batch['tags'] = torch.stack(process_batch['tags'])
-    
+        process_batch['tags'] = torch.stack(process_batch['tags'])
     process_batch['title_attention_mask'] = torch.stack(process_batch['title_attention_mask'])
     process_batch['description_attention_mask'] = torch.stack(process_batch['description_attention_mask'])
-    # process_batch['tags_attention_mask'] = torch.stack(process_batch['tags_attention_mask'])
+    process_batch['tags_attention_mask'] = torch.stack(process_batch['tags_attention_mask'])
     # process_batch['tags_ids'] = torch.stack(process_batch['tags_ids'])
-    process_batch['images'] = torch.stack(process_batch['images'])
-    process_batch['audio'] = torch.stack(process_batch['audio'])
-    process_batch['audio_mask'] = torch.stack(process_batch['audio_mask'])
 
     return process_batch
 
@@ -132,8 +147,9 @@ def collate_fn(batch, use_lemmatization=False, use_augmentation=False):
 def get_datasets(data_folder: str,
                  val_size: float = 0,
                  test_size: float = 0,
-                 separator: str = ', ',
+                 separator: str = 'SEP',
                  seed: int = 17,
+                 categories: List[str] = None  # Добавлен параметр
                  ):
     """
     Создает тренировочный, валидационный и тестовый датасеты на основе указанного CSV файла
@@ -143,6 +159,7 @@ def get_datasets(data_folder: str,
         val_size (float): Доля данных для валидации, в диапазоне [0, 1)
         test_size (float): Доля данных для тестирования, в диапазоне [0, 1)
         separator (str): Разделитель для тегов, если несколько тегов
+        categories (List[str]): Список категорий для фильтрации данных
 
     Returns:
         Tuple: Датасеты для обучения, валидации (если есть) и тестирования
@@ -156,20 +173,22 @@ def get_datasets(data_folder: str,
         test_size = val_size
         val_size = 0
 
-    # path = os.path.join(data_folder, 'metadata_stacked_filtered.csv')
     path = os.path.join(data_folder, 'metadata.csv')
-
     metadata = pd.read_csv(path)
 
-    metadata.tag = metadata.tag.fillna('')
-
     # Объединяем теги по видео
-    metadata = metadata.groupby(['video_id', 'title', 'description'])['tag'].agg(separator.join).reset_index()
+    metadata = metadata.groupby(['video_id', 'category', 'title', 'description'])['tag'].agg(
+        separator.join).reset_index()
+
+    # Фильтруем по выбранным категориям
+    if categories is not None:
+        metadata = metadata[metadata['category'].apply(lambda x: x not in categories)]
 
     # Разделение на тренировочный и тестовый датасет
     train_metadata, test_metadata = train_test_split(
         metadata,
         test_size=test_size,
+        # stratify=metadata['category'].values,
         random_state=seed
     )
 
@@ -178,6 +197,7 @@ def get_datasets(data_folder: str,
         train_metadata, val_metadata = train_test_split(
             train_metadata,
             test_size=val_size / (1 - test_size),
+            # stratify=train_metadata['category'].values,
             random_state=seed
         )
         val_dataset = VideoDataset(data_folder=data_folder,
@@ -210,7 +230,7 @@ class VideoDataset(Dataset):
                  data_folder: str,
                  metadata: pd.DataFrame,
                  set_name: str = 'train',
-                 separator: str = ', ',
+                 separator: str = 'SEP',
                  ):
         self.frames_folder = Path(path_to_project()) / Path(data_folder) / "frames"
         self.audio_folder = Path(path_to_project()) / Path(data_folder) / "audio"
@@ -243,24 +263,24 @@ class VideoDataset(Dataset):
 
     def _build_target(self) -> None:
         """
-            Builds label encodings for tags
+            Builds label encodings for categories and tags
         """
-        """
-            Builds label encodings for tags
-        """
-        self.tags = self.metadata.tag.apply(lambda x: list(filter(bool, x.split(self.separator)))).values
+        self.categories = self.metadata.category.values
+        self.tags = self.metadata.tag.apply(lambda x: x.split(self.separator)).values
+
+        # LabelEncoding for unique categories
+        unique_categories = np.unique(self.categories)  # Уникальные категории
+        self.cat2idx = {category: idx for idx, category in enumerate(unique_categories)}
+        self.idx2cat = {idx: category for idx, category in enumerate(unique_categories)}
+        self.num_categories = len(unique_categories)
 
         # LabelEncoding for tags
-        self.all_tags = set()
-        for tag in self.tags:
-            self.all_tags |= set(tag)
-        self.all_tags = list(self.all_tags)
-
-        self.tag2idx = {tag: idx for idx, tag in enumerate(self.all_tags)}
+        all_tags = set(tag.strip() for tag_list in self.tags for tag in tag_list)
+        self.tag2idx = {tag: idx for idx, tag in enumerate(all_tags)}
         self.idx2tag = {idx: tag for tag, idx in self.tag2idx.items()}
         self.num_tags = len(self.tag2idx)
 
-        log.info(f'''{self.set_name.upper()} INFO\nTotal: {self.num_tags} TAGS''')
+        log.info(f'''{self.set_name.upper()} INFO\nTotal: {self.num_categories} categories and {self.num_tags} tags''')
 
     def __len__(self) -> int:
         return len(self.metadata)
@@ -309,24 +329,30 @@ class VideoDataset(Dataset):
         return text
 
     def __getitem__(self, idx: int) -> Tuple[str, torch.Tensor, torch.Tensor]:
-        video_id = self.metadata['video_id'].values[idx]
+        # video_id = self.metadata['video_id'].values[idx]
+        category = self.categories[idx]
+        category_id = self.cat2idx[category]
 
         tags = self.tags[idx]
-        tags_id = [self.tag2idx[tag] for tag in tags]
+        # tags_ids = [self.tag2idx[tag.strip()] for tag in tags if tag.strip() in self.tag2idx]
+        # tags_ids = self.encode_tags_sparse(tags)
 
-        images = self.process_images(video_id)
-        audio = self.process_audio(video_id)
+        # images = self.process_images(video_id)
+        # audio = self.process_audio(video_id)
 
         title = self.truncate_string(self.metadata['title'].values[idx], train_config['max_title_length'])
         description = self.truncate_string(self.metadata['description'].values[idx],
                                            train_config['max_description_length'])
+        tag = self.truncate_string(tags[0], train_config['max_tag_length'])
 
         return {
-            "video_id": video_id,
-            "images": images,
-            "audio": audio,
+            "video_id": [],  # video_id,
+            "images": [],  # images,
+            "audio": [],  # audio,
             "title": title,
             "description": description,
-            "tags": tags,
-            "tags_ids": tags_id,  # tags_ids[0]
+            "category": category,
+            "category_id": category_id,
+            "tags": tag,
+            "tags_ids": [],  # tags_ids[0]
         }

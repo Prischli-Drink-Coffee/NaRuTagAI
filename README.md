@@ -203,3 +203,21 @@ config.yaml и запустите main.sh или main.bat в корневой д
 DATA_PATH=./data;WEIGHTS_PATH=./src/weights;METRICS_PATH=./src/metrics;HOST=HOST;SERVER_PORT=PORT;DB_HOST=HOST
 DB=DATABASE;DB_PORT=PORT;DB_USER=USER;DB_PASSWORD=PASSWORD;SECRET_KEY=SECRET_KEY
 
+
+### Argparse
+
+Для разбора аргументов командной строки используется библиотека Argparse.
+
+Пример использования:
+```bash
+python3 source ./venv/bin/activate
+python3 ./src/script/predict.py --title "Пример заголовка" --description "Пример описания"
+  --use_lemmatization
+  --max_length_token 512
+  --max_length_generation 10
+  --num_beams 5
+  --num_return_sequences 5
+```
+Выходные данные
+После выполнения скрипта в командной строке будет выведен список сгенерированных тегов:
+Generated tags: ['тег1', 'тег2', 'тег3', ...]

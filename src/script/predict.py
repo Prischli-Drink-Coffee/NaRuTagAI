@@ -1,5 +1,6 @@
 import torch
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, CLIPProcessor, CLIPModel, Wav2Vec2Processor, Wav2Vec2Model
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+import argparse
 import os
 from src.utils.string_filtration import process_single_text
 from src import project_path
@@ -38,18 +39,6 @@ class VideoTagInference:
         except Exception as ex:
             log.warning(f"Error loading model: {ex}")
 
-    def _extract_image_features(self, image: torch.Tensor):
-        """
-        Извлекает признаки из изображения с помощью модели CLIP.
-        """
-        pass
-
-    def _extract_audio_features(self, audio: torch.Tensor):
-        """
-        Извлекает признаки из аудио с помощью модели Wav2Vec2.
-        """
-        pass
-
     def preprocess_text(self, text: str, use_lemmatization: bool = False, max_length_token: int = 512):
         """
         Предобрабатывает текст (заголовок или описание) перед токенизацией, включая лемматизацию.
@@ -87,15 +76,6 @@ class VideoTagInference:
             concatenated_input = description_tokens['input_ids']
             concatenated_mask = description_tokens['attention_mask']
 
-        # Извлечение признаков из изображения и аудио, если они переданы
-        # if image is not None:
-        #     image_features = self._extract_image_features(image)
-        #     concatenated_input = torch.cat((concatenated_input, image_features), dim=1)
-
-        # if audio is not None:
-        #     audio_features = self._extract_audio_features(audio)
-        #     concatenated_input = torch.cat((concatenated_input, audio_features), dim=1)
-
         concatenated_input = concatenated_input.to(self.device)
         concatenated_mask = concatenated_mask.to(self.device)
 
@@ -122,3 +102,61 @@ class VideoTagInference:
         # Возвращаем список тегов
         return [self.tokenizer.decode(seq, skip_special_tokens=True) for seq in sorted_sequences]
 
+
+def parse_arguments():
+    """
+    Функция для разбора аргументов командной строки с помощью argparse.
+    """
+    parser = argparse.ArgumentParser(description="Script for generating video tags using text, audio, and images.")
+
+    # Аргументы для текста
+    parser.add_argument('--title', type=str, help="Title of the video")
+    parser.add_argument('--description', type=str, help="Description of the video")
+
+    # Аргументы для изображений и аудио
+    # parser.add_argument('--image', type=str, help="Path to image file")
+    # parser.add_argument('--audio', type=str, help="Path to audio file")
+
+    # Параметры генерации
+    parser.add_argument('--use_lemmatization', action='store_true', help="Use lemmatization for text preprocessing")
+    parser.add_argument('--max_length_token', type=int, default=512, help="Maximum length of tokenized text")
+    parser.add_argument('--max_length_generation', type=int, default=10, help="Maximum length of generated tags")
+    parser.add_argument('--num_beams', type=int, default=5, help="Number of beams for beam search")
+    parser.add_argument('--num_return_sequences', type=int, default=5, help="Number of returned sequences")
+
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    # Разбор аргументов командной строки
+    args = parse_arguments()
+
+    # Инициализация модели предсказания
+    tag_inference = VideoTagInference()
+
+    # Загрузка изображения и аудио, если указаны
+    image_tensor = None
+    if args.image:
+        # Загрузка изображения как тензора
+        image_tensor = torch.load(args.image)
+
+    audio_tensor = None
+    if args.audio:
+        # Загрузка аудио как тензора
+        audio_tensor = torch.load(args.audio)
+
+    # Выполнение предсказания
+    tags = tag_inference.inference(
+        title=args.title,
+        description=args.description,
+        image=image_tensor,
+        audio=audio_tensor,
+        use_lemmatization=args.use_lemmatization,
+        max_length_token=args.max_length_token,
+        max_length_generation=args.max_length_generation,
+        num_beams=args.num_beams,
+        num_return_sequences=args.num_return_sequences
+    )
+
+    # Вывод предсказанных тегов
+    print("Generated tags:", tags)
