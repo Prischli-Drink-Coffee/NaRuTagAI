@@ -25,6 +25,12 @@ NaRuTagAI — проект с открытым исходных кодом, по
 
 ---
 
+
+### Внешний вид пользоваетльского интерфейса:
+
+![image](./src/images/design.svg)
+
+
 - [Структура репозитория](#структура-репозитория)
 - [Необходимые требования](#требования)
 - [Установка и настройка](#установка-и-настройка)
@@ -103,6 +109,9 @@ NaRuTagAI — проект с открытым исходных кодом, по
 ```
 
 
+### Реляционная база данных:
+
+![image](./src/images/NaRuTagAI.svg)
 
 
 
@@ -193,3 +202,4 @@ config.yaml и запустите main.sh или main.bat в корневой д
 
 DATA_PATH=./data;WEIGHTS_PATH=./src/weights;METRICS_PATH=./src/metrics;HOST=HOST;SERVER_PORT=PORT;DB_HOST=HOST
 DB=DATABASE;DB_PORT=PORT;DB_USER=USER;DB_PASSWORD=PASSWORD;SECRET_KEY=SECRET_KEY
+
