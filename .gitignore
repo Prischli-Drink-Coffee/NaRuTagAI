@@ -1,3 +1,11 @@
+
+/venv/
+/setup.log
+/.env
+/.idea
+/logs/
+/urls.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -160,3 +168,24 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+/data/
+/main_stuff.py
+/main_stuff.ipynb
+/temp.txt
+/cudnn_windows/
+/public/
+/SQL.txt
+/temp_collector.txt
+/NaRUTagAI_filt/
+/src/metrics/
+/src/weights/
+/src/certs/
+/src/baseline/train_data_categories.csv
+/src/EDA/metadata.csv
+/src/EDA/our_cats.csv
+/src/EDA/our_tags.csv
+/src/EDA/rutube - refactor.csv
+/src/EDA/rutube_cats.csv
+/src/EDA/rutube_tags.csv
+/src/stuff/video_dataset.py
+/src/stuff/train.py

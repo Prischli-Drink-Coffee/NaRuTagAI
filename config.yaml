@@ -1,0 +1,50 @@
+RutubeVideoCollector:
+  max_videos_per_category: 200
+  max_videos_per_tag: 300
+  min_duration: 3
+  max_duration: 33
+  quality: 'worst'
+  audio_fps: 16000
+  n_frames: 64
+  frame_dimensions: (256, 256)
+
+Dataset:
+  pretrained_text_model: 'ai-forever/rugpt3medium_based_on_gpt2'
+  use_fast_tokenizer: True
+  clean_up_tokenization_spaces: True
+  sample_duration: 64
+  max_title_length: 512
+  max_description_length: 512
+  max_tag_length: 512
+  use_random_token_mask: False
+  image_size: 64
+  n_channels: 3
+
+TrainParam:
+ task: "txt2cat"                # txt2tag
+ use_device: "cuda"             # cuda, cpu
+ start_learning_rate: 0.000001
+ name_model: 'GPT3-medium'
+ pretrained_text_model: 'ai-forever/rugpt3medium_based_on_gpt2' # 'IlyaGusev/saiga_llama3_8b'
+ pretrained_audio_model: 'microsoft/speecht5_asr'
+ use_fast_tokenizer: True
+ use_text_lematization: True
+ use_text_augmentation: True
+ clean_up_tokenization_spaces: True
+ list_no_include_cat: None
+ max_length_generation: 64
+ early_stopping: True
+ num_beams: 5
+ batch_size: 1
+ num_workers: 1               # bug then more 0
+ pin_memory: True             # turn off with cpu
+ image_size: 64
+ sample_duration: 64          # num frame for train
+ n_channels: 3
+ num_epochs: 10
+ embedding_dim: 512           # size feature
+ tag_similarity: 0.8
+ name_optimizer: "Adam"       # SGD, Adam
+ val_size: 0.1
+ test_size: 0.1
+ seed: 17

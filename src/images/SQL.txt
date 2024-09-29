@@ -1,0 +1,31 @@
+CREATE TABLE IF NOT EXISTS video (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    url VARCHAR(255) DEFAULT NULL,
+    name VARCHAR(255) DEFAULT NULL,
+    title VARCHAR(255) DEFAULT NULL,
+    description TEXT DEFAULT NULL,
+    duration INT NOT NULL,
+    date_upload TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
+);
+CREATE TABLE IF NOT EXISTS tags (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
+);
+CREATE TABLE IF NOT EXISTS inference (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    category_id INT NOT NULL,
+    tag_ids VARCHAR(255) DEFAULT NULL,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS video_inference (
+    id INT AUTO_INCREMENT,
+    video_id INT NOT NULL,
+    inference_id INT NOT NULL,
+    PRIMARY KEY (id, video_id, inference_id),
+    FOREIGN KEY (video_id) REFERENCES video(id) ON DELETE CASCADE,
+    FOREIGN KEY (inference_id) REFERENCES video_inference(id) ON DELETE CASCADE
+);
