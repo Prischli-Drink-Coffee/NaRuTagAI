@@ -11,6 +11,7 @@ from src.modelling.video_processing import VideoProcessor
 from src.utils.custom_logging import setup_logging
 from src.script.predict import VideoTagInference
 from src.services import (video_services, video_inference_services, inference_services)
+from src.utils.list_to_str import encode_list_to_string
 
 log = setup_logging()
 VideoTagInference = VideoTagInference()
@@ -126,7 +127,7 @@ class VideoInferencePipeline:
         """
         try:
             # Обрабатываем видео
-            _, _, video_id = self.processor.process_video()
+            title, description, video_id = self.processor.process_video()
             if not video_id:
                 raise Exception("Video not found")
 
@@ -134,28 +135,24 @@ class VideoInferencePipeline:
             audio_path = self.audio_folder / f"{video_id}.mp3"
 
             # Обрабатываем кадры и аудио
-            video_audio_processor = VideoAudioProcessor()
-            frames_tensor, audio_tensor = video_audio_processor.process_video_and_audio(str(frame_path),
-                                                                                        str(audio_path))
+            # video_audio_processor = VideoAudioProcessor()
+            # frames_tensor, audio_tensor = video_audio_processor.process_video_and_audio(str(frame_path),
+            #                                                                             str(audio_path))
 
             # Создаем запись видео в базе данных
-            video_database = video_services.create_video(Video(url=self.predict.Url,
-                                                               name=video_id,
-                                                               title=self.predict.Title,
-                                                               dscription=self.predict.Desc,
-                                                               duration=0))
+            video_services.create_video(Video(url=self.predict.Url,
+                                              name=video_id,
+                                              title=title,
+                                              dscription=description,
+                                              duration=0))
 
             # Выполняем инференс
-            predict_list = VideoTagInference.inference(title=self.predict.Title,
-                                                       description=self.predict.Desc,
-                                                       image=frames_tensor,
-                                                       audio=audio_tensor)
+            predict_list = VideoTagInference.predict(title=title,
+                                                       description=description)
 
-            # 1. Словарь соответсвий теговв и категорий
-            # 2. Сохранение тега и категории в базу данных
-            # 3. Сохраняем результаты инференса в базу данных (пример, требует доработки)
-            # inference_id = inference_services.create_inference(Inference(...))
-            # video_inference_services.create_video_inference(VideoInference(VideoID=video_id, InferenceID=inference_id))
+            # inference = inference_services.create_inference(Inference(CategoryIDS=encode_list_to_string(predict_list),
+                                                                        #  TagIDS=None))
+            # video_inference_services.create_video_inference(VideoInference(VideoID=video_id, InferenceID=inference.ID))
 
             return predict_list
 

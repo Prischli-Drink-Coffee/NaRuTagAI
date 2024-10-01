@@ -36,6 +36,7 @@ else
     exit 1
 fi
 
+
 # Запуск соответствующего скрипта на основе значения в temp.txt
 # shellcheck disable=SC2181
 if [ $? -eq 0 ]; then

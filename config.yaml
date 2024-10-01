@@ -12,7 +12,7 @@ RutubeVideoCollector:
 TrainParam:
  task: "txt2tag" # txt2tag
  use_device: "cuda" # cuda, cpu
- start_learning_rate: 0.000001
+ start_learning_rate: 0.00001
  name_models: ['keyT5_tags_custom']
  pretrained_weight_bert_class: 'ai-forever/ruBert-base'
  pretrained_weight_tag: 'emelnov/keyT5_tags_custom' # '0x7o/keyt5-base', '0x7o/keyt5-large', 'emelnov/keyT5_tags_custom'
@@ -22,9 +22,9 @@ TrainParam:
  clean_up_tokenization_spaces: True
  use_random_token_mask: True
  list_no_include_cat: None # ['Обзоры и распаковки товаров', 'Лайфстайл', 'Недвижимость', 'Здоровье', 'Природа', 'Дизайн', 'Техника и оборудование', 'Бизнес и предпринимательство', 'Культура', 'Религия', 'Строительство и ремонт', 'Сад и огород', 'Аудиокниги', 'Еда', 'Интервью', 'Развлечения', 'Лайфхаки', 'Эзотерика', 'Охота и рыбалка', 'Наука', 'Политика', 'Психология', 'Аудио', 'Технологии и интернет', 'Красота', 'Телепередачи', 'Детям', 'Аниме', 'Хобби', 'Видеоигры', 'Юмор', 'Обучение', 'Спорт', 'Разное', 'Путешествия', 'Животные', 'Новости и СМИ', 'Мультфильмы', 'Музыка', 'Сериалы', 'Фильмы', 'Авто-мото']
- max_title_length: 512
- max_description_length: 2048
- max_tag_length: 512
+ max_title_length: 1024
+ max_description_length: 4096
+ max_tag_length: 1024
  max_length_generation: 64
  early_stopping: True
  num_beams: 5
@@ -35,7 +35,7 @@ TrainParam:
  image_size: 64
  sample_duration: 64 # num frame for train
  n_channels: 3
- num_epochs: 3
+ num_epochs: 10
  embedding_dim: 512 # size feature
  tag_similarity: 0.8
  name_optimizer: "Adam" # SGD, Adam

@@ -96,15 +96,7 @@ class Predict(BaseModel):
     """
     Url: StrictStr = Field(...,
                            alias="url",
-                           examples=["https://rutube.ru/video/907c4899c9a60937c4376937d086fb7e/"])
-    Title: Optional[StrictStr] = Field(None,
-                                       alias="title",
-                                       examples=["Гарри Поттер и Принц-полукровка (Фильм, 2009)"])
-    Desc: Optional[StrictStr] = Field(None,
-                                      alias="description",
-                                      examples=["Теперь не только мир волшебников, "
-                                                "но и мир маглов ощущает на себе всевозрастающую силу Волан-де-Морта,"
-                                                " а Хогвартс уже никак не назовешь надежным убежищем, каким он был раньше."])
+                           examples=["https://rutube.ru/video/98a85192e297ff4db1860f43ff7a2738/"])
 
 
 class Users(BaseModel):

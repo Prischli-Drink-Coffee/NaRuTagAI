@@ -73,6 +73,19 @@ async def signup(email: str = Form(...), password: str = Form(...)):
     except HTTPException as ex:
         log.exception("Error during registration", exc_info=ex)
         raise ex
+    
+
+@app_public.post("/signin/", response_model=Users, tags=["Main"])
+async def signin(email: str = Form(...), password: str = Form(...)):
+    """
+    Авторизация пользователя.
+    """
+    try:
+        user = authenticate_services.auth_user(email, password)
+        return user_services.create_user(user)
+    except HTTPException as ex:
+        log.exception("Error during registration", exc_info=ex)
+        raise ex
 
 
 @app_public.post("/get_api_key/", response_model=APIKey, tags=["Main"])
@@ -536,7 +549,7 @@ async def get_inference_by_id(inference_id: int):
         raise ex
 
 
-@app_server.post("/inferences/", response_model=Inference, tags=["Inference"])
+@app_server.post("/inferences/", response_model=Dict, tags=["Inference"])
 async def create_inference(inference: Inference):
     """
     Route for create inference in basedata.

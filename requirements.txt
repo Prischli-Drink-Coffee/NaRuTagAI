@@ -48,3 +48,4 @@ twisted
 aiobotocore
 cryptography
 bcrypt
+opencv-python
