@@ -189,3 +189,5 @@ cython_debug/
 /src/EDA/rutube_tags.csv
 /src/stuff/video_dataset.py
 /src/stuff/train.py
+/src/EDA/sample_submission.csv
+/src/EDA/submission.csv

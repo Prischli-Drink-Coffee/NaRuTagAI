@@ -166,7 +166,7 @@ NaRuTagAI — проект с открытым исходных кодом, по
 
 * Запустите скрипт через pm2 для Linux/MacOS
     ```bash
-    pm2 start 'bash server.sh'
+    pm2 start 'bash pm2.sh'
     ```
 * Запустите через меню выбора для Linux/MacOS
     ```bash
