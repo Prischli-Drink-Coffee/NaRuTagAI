@@ -23,19 +23,16 @@ export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/venv/lib/python3.9/site-packages
 python3 ./setup/validate_requirements.py
 
 # Очистка setup.log
-python3 ./clear_setup_log.py
+python3 ./src/utils/clear_setup_log.py
 
 # Меню выбора интерфейса
 python3 ./setup/gui_windows.py
 
-# Чтение значения из файла temp.txt
-if [ -f "temp.txt" ]; then
-    var=$(<temp.txt)
-else
-    echo "Файл temp.txt не найден."
-    exit 1
-fi
+# Определяем путь к файлу .env
+ENV_FILE=".env"
 
+# Ищем строку, начинающуюся с "CHOICE=", и считываем значение после знака "="
+var=$(grep "^CHOICE=" "$ENV_FILE" | cut -d '=' -f2 | tr -d "'\"")
 
 # Запуск соответствующего скрипта на основе значения в temp.txt
 # shellcheck disable=SC2181
@@ -45,42 +42,42 @@ if [ $? -eq 0 ]; then
     if [[ "$0" != "$BASH_SOURCE" ]]; then
         echo "Этот скрипт был запущен двойным кликом."
 
-        case "$var" in
-            "1")
+        case $var in
+            '1')
                 gnome-terminal -- python3 ./src/pipeline/data_downloader.py
                 ;;
-            "2")
+            '2')
                 gnome-terminal -- python3 ./src/pipeline/train.py
                 ;;
-            "3")
+            '3')
                 gnome-terminal -- python3 ./src/pipeline/server.py
                 ;;
-            "4")
-                gnome-terminal -- python3 ./src/pipeline/test.py
+            '4')
+                gnome-terminal -- pytest ./src/pipeline/test.py
                 ;;
             *)
-                echo "Неизвестное значение в temp.txt: $var"
+                echo "Неизвестное значение в env: $var"
                 ;;
         esac
 
     else
         echo "Этот скрипт был запущен из командной строки."
 
-        case "$var" in
-            "1")
+        case $var in
+            '1')
                 python3 ./src/pipeline/data_downloader.py
                 ;;
-            "2")
+            '2')
                 python3 ./src/pipeline/train.py
                 ;;
-            "3")
+            '3')
                 python3 ./src/pipeline/server.py
                 ;;
-            "4")
-                python3 ./src/pipeline/test.py
+            '4')
+                pytest ./src/pipeline/test.py
                 ;;
             *)
-                echo "Неизвестное значение в temp.txt: $var"
+                echo "Неизвестное значение в env: $var"
                 ;;
         esac
     fi

@@ -1,10 +1,13 @@
 import sys
+from dotenv import load_dotenv, set_key, unset_key
+from src import path_to_env
+load_dotenv(path_to_env())
 
 
 def main_menu():
     while True:
         print('=============================================================')
-        print(' Меню для работы с NaRuTagAi:\n')
+        print(' Меню для работы с NaRuTagAI:\n')
         print(' 1. Запуск data_downloader')
         print(' 2. Запуск train')
         print(' 3. Запуск uvicorn')
@@ -15,33 +18,17 @@ def main_menu():
         choice = input('\nСделайте выбор: ')
         print('')
 
-        if choice == '1':
-            # Файл data_downloader.py
-            with open('temp.txt', 'w') as temp_file:
-                temp_file.write('1')
-            break
-        elif choice == '2':
-            # Файл train.py
-            with open('temp.txt', 'w') as temp_file:
-                 temp_file.write('2')
-            break
-        elif choice == '3':
-            # Файл uvicorn.py
-            with open('temp.txt', 'w') as temp_file:
-                temp_file.write('3')
-            break
-        elif choice == '4':
-            # Файл test.py
-            with open('temp.txt', 'w') as temp_file:
-                temp_file.write('4')
+        if choice in ['1', '2', '3', '4']:
+            set_key(path_to_env(), 'CHOICE', choice)  # Устанавливаем значение переменной окружения
             break
         elif choice == '5':
-            with open('temp.txt', 'w') as temp_file:
-                temp_file.write('')
             sys.exit()
         else:
             print('Выберите между 1-5')
 
 
 if __name__ == '__main__':
-    main_menu()
+    try:
+        main_menu()
+    except Exception as ex:
+        print(ex)

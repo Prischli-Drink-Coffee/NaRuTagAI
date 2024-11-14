@@ -760,15 +760,22 @@ async def delete_video(video_id):
 
 
 def run_server():
-    import logging.config as logging
+    import logging
     import uvicorn
     import yaml
-    uvicorn_log_config = os.path.join(path_to_project(), 'logging.yaml')
+    from src import path_to_logging
+    uvicorn_log_config = path_to_logging()
     with open(uvicorn_log_config, 'r') as f:
         uvicorn_config = yaml.safe_load(f.read())
-        logging.dictConfig(uvicorn_config)
+        logging.config.dictConfig(uvicorn_config)
+    if env.__getattr__("DEBUG") == "TRUE":
+        reload = True
+    elif env.__getattr__("DEBUG") == "FALSE":
+        reload = False
+    else:
+        raise Exception("Not init debug mode in env file")
     uvicorn.run("server:app", host=env.__getattr__("HOST"), port=int(env.__getattr__("SERVER_PORT")),
-                reload=True, log_config=uvicorn_log_config)
+                log_config=uvicorn_log_config, reload=reload)
 
 
 if __name__ == "__main__":
