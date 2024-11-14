@@ -1,12 +1,17 @@
-import { Button, Input, Text, VStack } from "@chakra-ui/react";
-import { useFormik } from "formik";
+import { Flex, VStack, Divider } from "@chakra-ui/react";
 import React from "react";
+import LoginForm from "../components/logform";
+import Slogan from "../components/slogan";
 import UserService from "../API/services/user_service";
 import { setUser } from "../API/helper/userCookie";
 import { useNavigate } from "react-router";
+import useWindowDimensions from "../hooks/window_dimensions";
+
 
 const SignInPage = () => {
-  const navigate = useNavigate();
+    const navigate = useNavigate();
+    const { width } = useWindowDimensions();
+
   const validate = (values) => {
     const errors = {};
 
@@ -20,7 +25,8 @@ const SignInPage = () => {
     }
 
     return errors;
-  };
+    };
+
   const signIn = async (values) => {
     try {
       const response = await UserService.signIn(values.login, values.password);
@@ -34,51 +40,33 @@ const SignInPage = () => {
     }
   };
 
-  const formik = useFormik({
-    initialValues: {
-      login: "",
-      password: "",
-    },
-    validate,
-    onSubmit: (values) => {
-      signIn(values);
-    },
-  });
+    return (
+        <VStack minH="100vh" align="center" justify="center" bg="#ffffff">
+            <Flex
+                position="relative"
+                width={ width }
+                height="auto"
+                align="center"
+                justify="center"
+                gap="20px"
+            >
 
-  return (
-    <VStack minH={"100VH"} align="center" justify="center">
-      <VStack spacing="15px" align="center" border>
-        <form onSubmit={formik.handleSubmit}>
-          <VStack>
-            <Input
-              id="login"
-              name="login"
-              type="login"
-              placeholder="Логин"
-              onChange={formik.handleChange}
-              value={formik.values.login}
-            />
-            {formik.errors.login && formik.touched.login ? (
-              <Text>{formik.errors.login} </Text>
-            ) : null}
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="Пароль"
-              onChange={formik.handleChange}
-              value={formik.values.password}
-            />
-            {formik.errors.password && formik.touched.password ? (
-              <Text>{formik.errors.password}</Text>
-            ) : null}
-            <Button type="submit" variant="menu_yellow">
-              Войти
-            </Button>
-          </VStack>
-        </form>
-      </VStack>
-    </VStack>
-  );
+                {/* Slogan слева*/}
+                <Slogan />
+
+                {/* Разделительная линия */}
+                <Divider
+                    orientation="vertical"
+                    border="1px solid rgba(75, 187, 252, 0.6)"
+                    height="600px"
+                />
+
+                {/* Форма авторизации справа с передачей функции signIn */}
+                <LoginForm onSubmit={signIn} />
+
+            </Flex>
+        </VStack>
+    );
 };
+
 export default SignInPage;

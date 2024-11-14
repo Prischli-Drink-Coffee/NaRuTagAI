@@ -1,13 +1,13 @@
 import React from 'react';
 import { Box, Button, Input, Text, VStack, FormControl } from "@chakra-ui/react";
 
-const RegistrationForm = () => {
+const LoginForm = () => {
     return (
         <Box
             position="absolute"
             width="700px"
             height="600px"
-            left="100px"
+            left="900px"
             p="4"
             bg="transpose"
         >
@@ -21,7 +21,7 @@ const RegistrationForm = () => {
                     fontSize="32px"
                     color="#023BA3"
                 >
-                    Registration
+                    Authorization
                 </Text>
 
                 {/* Поле ввода Email */}
@@ -65,11 +65,11 @@ const RegistrationForm = () => {
                     color="#FFFFFF"
                     _hover={{ bg: "#3a6fdc" }}
                 >
-                    Reg
+                    Log
                 </Button>
             </VStack>
         </Box>
     );
 };
 
-export default RegistrationForm;
+export default LoginForm;
