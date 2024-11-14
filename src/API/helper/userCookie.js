@@ -8,10 +8,6 @@ export const getToken = () => {
   return `Bearer ${token}`;
 };
 
-export const getRole = () => {
-  return Cookies.get("role");
-};
-
 export const setUser = (user) => {
   Cookies.set("token", user.token, { expires: 365 ** 2 });
   Cookies.set("userEmail", user.userEmail, { expires: 365 ** 2 });

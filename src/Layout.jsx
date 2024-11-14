@@ -13,9 +13,7 @@ function Layout() {
     try {
       const response = await UserService.me();
 
-      if (!response.data.role === cookie.role) {
-        setCookie("role", response.data.role);
-      } else if (response.data.userEmail !== cookie.userEmail) {
+      if (response.data.userEmail !== cookie.userEmail) {
         setCookie("userEmail", response.data.userEmail);
       }
     } catch (e) {

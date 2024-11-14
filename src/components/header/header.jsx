@@ -59,7 +59,7 @@ const Header = () => {
             p="0"
         >
             <Box>
-                <Image src={tr_logo} boxSize="300px" alt="Logo" position="absolute" top="-110px" left="120px" />
+                <Image src={tr_logo} boxSize="300px" alt="Logo" position="absolute" top="-110px" left="110px" />
             </Box>
 
             {/* Логотип и название NaRuTagAI */}
