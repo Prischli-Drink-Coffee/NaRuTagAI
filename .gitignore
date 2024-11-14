@@ -28,3 +28,4 @@ yarn-error.log*
 /obj/
 /.vscode/
 /.vs/
+/node_modules/console-control-strings
