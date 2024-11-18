@@ -50,3 +50,4 @@ aiobotocore
 cryptography
 bcrypt
 opencv-python
+pandas

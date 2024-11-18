@@ -1,31 +1,81 @@
-CREATE TABLE IF NOT EXISTS video (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    url VARCHAR(255) DEFAULT NULL,
-    name VARCHAR(255) DEFAULT NULL,
-    title VARCHAR(255) DEFAULT NULL,
-    description TEXT DEFAULT NULL,
-    duration INT NOT NULL,
-    date_upload TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+-- Таблица категорий
 CREATE TABLE IF NOT EXISTS categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL
 );
-CREATE TABLE IF NOT EXISTS tags (
+
+-- Таблица подкатегорий
+CREATE TABLE IF NOT EXISTS subcategories (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL
-);
-CREATE TABLE IF NOT EXISTS inference (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
     category_id INT NOT NULL,
-    tag_ids VARCHAR(255) DEFAULT NULL,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
 );
-CREATE TABLE IF NOT EXISTS video_inference (
-    id INT AUTO_INCREMENT,
+
+-- Таблица тегов
+CREATE TABLE IF NOT EXISTS tags (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    subcategory_id INT NOT NULL,
+    FOREIGN KEY (subcategory_id) REFERENCES subcategories(id) ON DELETE CASCADE
+);
+
+-- Таблица концептуальных категорий вывода (связь через category_ids)
+CREATE TABLE IF NOT EXISTS inference_categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    category_ids VARCHAR(255) NOT NULL -- Концептуальная связь с categories.id
+);
+
+-- Таблица концептуальных подкатегорий вывода (связь через subcategory_ids)
+CREATE TABLE IF NOT EXISTS inference_subcategories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    category_id INT NOT NULL, -- Концептуальная связь с inference_categories.category_ids
+    subcategory_ids VARCHAR(255) NOT NULL -- Концептуальная связь с subcategories.id
+);
+
+-- Таблица концептуальных тегов вывода (связь через tag_ids)
+CREATE TABLE IF NOT EXISTS inference_tags (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    subcategory_id INT NOT NULL, -- Концептуальная связь с inference_subcategories.subcategory_ids
+    tag_ids VARCHAR(255) NOT NULL -- Концептуальная связь с tags.id
+);
+
+-- Таблица пользователей
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    role ENUM('admin', 'user') NOT NULL DEFAULT 'user'
+);
+
+-- Таблица API-ключей
+CREATE TABLE IF NOT EXISTS api_keys (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    api_key VARCHAR(255) NOT NULL,
+    user_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Таблица видео
+CREATE TABLE IF NOT EXISTS video (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    url VARCHAR(255) NOT NULL,
+    title VARCHAR(255) DEFAULT NULL,
+    description TEXT DEFAULT NULL,
+    duration INT NOT NULL,
+    date_upload TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    inference_id INT DEFAULT NULL,
+    FOREIGN KEY (inference_id) REFERENCES inference_categories(id) ON DELETE CASCADE
+);
+
+-- Таблица, связывающая пользователей с их видео
+CREATE TABLE IF NOT EXISTS user_videos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
     video_id INT NOT NULL,
-    inference_id INT NOT NULL,
-    PRIMARY KEY (id, video_id, inference_id),
-    FOREIGN KEY (video_id) REFERENCES video(id) ON DELETE CASCADE,
-    FOREIGN KEY (inference_id) REFERENCES video_inference(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (video_id) REFERENCES video(id) ON DELETE CASCADE
 );

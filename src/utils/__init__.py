@@ -5,7 +5,7 @@ sys.path.insert(0, project_path)
 
 
 def path_to_config():
-    return os.path.join(project_path, 'scr/config.yaml')
+    return os.path.join(project_path, 'src/config.yaml')
 
 
 def path_to_project():

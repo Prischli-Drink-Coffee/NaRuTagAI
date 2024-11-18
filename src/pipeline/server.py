@@ -102,7 +102,7 @@ async def get_api_key(user: Users = Depends(authenticate_services.get_current_us
         raise ex
 
 
-@app_public.post("/predict/", response_model=list, tags=["Main"])
+@app_public.post("/predict/", response_model=None, tags=["Main"])
 async def predict(predict: Predict,
                   api_key: str = authenticate_services.validate_api_key):
     """
@@ -113,7 +113,8 @@ async def predict(predict: Predict,
     :return: response model dict.
     """
     try:
-        return main_services.predict(predict)
+        return None
+        # return main_services.predict(predict)
     except HTTPException as ex:
         log.exception(f"Error", exc_info=ex)
         raise ex
