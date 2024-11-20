@@ -1,12 +1,11 @@
 from typing import Annotated
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from src.utils.hashing import hash_password, validate_password
+from src.utils.hashing import validate_password
 from src.database.models import Users, APIKey
 from src.services.user_services import get_user_by_email, get_user_by_id
-from src.script.apikey import generate_encrypted_api_key, decrypt_api_key
+from src.utils.apikey import generate_encrypted_api_key, decrypt_api_key
 from src.services.api_key_services import get_api_key_by_user_id, update_api_key
-import bcrypt
 import re
 
 security = HTTPBasic()

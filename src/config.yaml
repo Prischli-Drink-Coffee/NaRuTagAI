@@ -9,6 +9,16 @@ RutubeVideoCollector:
   frame_dimensions: (256, 256)
 
 
+EmbeddingCollector:
+  batch_size: 8
+  image_size: 256
+  image_model_path: 'microsoft/LLM2CLIP-Openai-B-16' # from huggingface
+  clip_image_processor: 'openai/clip-vit-base-patch16'
+  text_model_path: 'BAAI/bge-m3' # from FlagEmbedding
+  sample_rate: 16000
+  audio_model_path: 'openai/whisper-large-v3-turbo' # from huggingface
+
+
 TrainParam:
  task: "txt2tag" # txt2tag
  use_device: "cuda" # cuda, cpu

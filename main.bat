@@ -37,10 +37,12 @@ if %errorlevel% equ 0 (
         if %var% == '1' (
             cmd /k python.exe ./src/pipeline/data_downloader.py
         ) else if %var% == '2' (
-            cmd /k python.exe ./src/pipeline/train.py
+            cmd /k python.exe ./src/pipeline/data_preproccessor.py
         ) else if %var% == '3' (
-            cmd /k python.exe ./src/pipeline/server.py
+            cmd /k python.exe ./src/pipeline/train.py
         ) else if %var% == '4' (
+            cmd /k python.exe ./src/pipeline/server.py
+        ) else if %var% == '5' (
             cmd /k pytest ./src/pipeline/test.py
         ) else (
             echo Not found value: %var%
@@ -50,10 +52,12 @@ if %errorlevel% equ 0 (
         if %var% == '1' (
             python.exe ./src/pipeline/data_downloader.py
         ) else if %var% == '2' (
-            python.exe ./src/pipeline/train.py
+            python.exe ./src/pipeline/data_preproccessor.py
         ) else if %var% == '3' (
-            python.exe ./src/pipeline/server.py
+            python.exe ./src/pipeline/train.py
         ) else if %var% == '4' (
+            python.exe ./src/pipeline/server.py
+        ) else if %var% == '5' (
             pytest ./src/pipeline/test.py
         ) else (
             echo Not found value: %var%

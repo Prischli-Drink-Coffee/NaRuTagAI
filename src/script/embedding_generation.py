@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from sentence_transformers import SentenceTransformer
 
+
 @dataclass
 class TagEmbeddingGeneration:
     taxonomy_path: str = 'src/baseline/IAB_tags.csv'

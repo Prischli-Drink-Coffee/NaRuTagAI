@@ -64,6 +64,23 @@ def check_tensorflow():
         return 0
 
 
+def check_torch():
+    try:
+        import torch
+        log.info(f'PyTorch {torch.__version__}')
+
+        # Проверка доступности GPU
+        if not torch.cuda.is_available():
+            log.warning('PyTorch сообщил, что GPU не доступен')
+        else:
+            log.info('PyTorch обнаружил устройство: GPU')
+
+        return 1
+    except Exception as e:
+        log.error(f'Невозможно загрузить PyTorch: {e}', exc_info=True)
+        return 0
+
+
 def main():
     setup_common.check_repo_version()
     # Разобрать аргументы командной строки
@@ -80,13 +97,16 @@ def main():
     args = parser.parse_args()
 
     tensorflow_ver = check_tensorflow()
+    torch_ver = check_torch()
     setup_common.install_requirements('requirements.txt', check_no_verify_flag=True)
 
     if args.requirements:
         setup_common.install_requirements(args.requirements, check_no_verify_flag=True)
     else:
         if tensorflow_ver == 0:
-            setup_common.install_requirements('requirements_windows_tensorflow.txt', check_no_verify_flag=True)
+            setup_common.install_requirements('requirements_external.txt', check_no_verify_flag=True)
+        if torch_ver == 0:
+            setup_common.install_requirements('requirements_external.txt', check_no_verify_flag=True)
 
 
 if __name__ == '__main__':

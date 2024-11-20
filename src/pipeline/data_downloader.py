@@ -5,12 +5,11 @@ from src.utils.custom_logging import setup_logging
 from env import Env
 
 log = setup_logging()
+env = Env()
 
 
 def data_downloader():
-    env = Env()
     config = ConfigParser.parse(path_to_config())
-
     collector_config = config.get('RutubeVideoCollector', {})
     collector = RutubeVideoCollector(data_folder=env.__getattr__("DATA_PATH"),
                                      **collector_config)

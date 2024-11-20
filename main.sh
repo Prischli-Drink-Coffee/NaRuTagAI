@@ -47,12 +47,15 @@ if [ $? -eq 0 ]; then
                 gnome-terminal -- python3 ./src/pipeline/data_downloader.py
                 ;;
             '2')
-                gnome-terminal -- python3 ./src/pipeline/train.py
+                gnome-terminal -- python3 ./src/pipeline/data_preproccessor.py
                 ;;
             '3')
-                gnome-terminal -- python3 ./src/pipeline/server.py
+                gnome-terminal -- python3 ./src/pipeline/train.py
                 ;;
             '4')
+                gnome-terminal -- python3 ./src/pipeline/server.py
+                ;;
+            '5')
                 gnome-terminal -- pytest ./src/pipeline/test.py
                 ;;
             *)
@@ -68,12 +71,15 @@ if [ $? -eq 0 ]; then
                 python3 ./src/pipeline/data_downloader.py
                 ;;
             '2')
-                python3 ./src/pipeline/train.py
+                python3 ./src/pipeline/data_preproccessor.py
                 ;;
             '3')
-                python3 ./src/pipeline/server.py
+                python3 ./src/pipeline/train.py
                 ;;
             '4')
+                python3 ./src/pipeline/server.py
+                ;;
+            '5')
                 pytest ./src/pipeline/test.py
                 ;;
             *)

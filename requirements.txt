@@ -51,3 +51,7 @@ cryptography
 bcrypt
 opencv-python
 pandas
+peft
+einops
+ffmpeg-python
+clip
