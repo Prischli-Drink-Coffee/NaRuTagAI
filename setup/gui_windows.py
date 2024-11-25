@@ -10,22 +10,23 @@ def main_menu():
         print(' Меню для работы с NaRuTagAI:\n')
         print(' 1. Запуск data_downloader')
         print(' 2. Запуск data_preproccessor')
-        print(' 3. Запуск train')
-        print(' 4. Запуск uvicorn')
-        print(' 5. Запуск pytest')
-        print(' 6. Выход из меню')
+        print(' 3. Запуск data_graphcreator')
+        print(' 4. Запуск train')
+        print(' 5. Запуск uvicorn')
+        print(' 6. Запуск pytest')
+        print(' 7. Выход из меню')
         print('=============================================================')
 
         choice = input('\nСделайте выбор: ')
         print('')
 
-        if choice in ['1', '2', '3', '4', '5']:
+        if choice in ['1', '2', '3', '4', '5', '6']:
             set_key(path_to_env(), 'CHOICE', choice)  # Устанавливаем значение переменной окружения
             break
-        elif choice == '6':
+        elif choice == '7':
             sys.exit()
         else:
-            print('Выберите между 1-6')
+            print('Выберите между 1-7')
 
 
 if __name__ == '__main__':

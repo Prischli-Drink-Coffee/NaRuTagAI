@@ -17,7 +17,7 @@ import torch.nn.functional as F
 from src.utils.save_param import save_model, save_metrics_train, save_metrics_test
 from src.utils.create_dir import create_directories_if_not_exist
 from dataclasses import dataclass
-from src.modelling.custom_model import CustomClassifier
+from src.modelling.custom_model import CustomClassifierWithGAT, GraphReader
 
 log = setup_logging()
 
@@ -52,6 +52,7 @@ class Graduate:
         self.path_to_weights = Path(os.path.join(project_path, self.path_to_weights))
         self.path_to_metrics_train = Path(os.path.join(project_path, self.path_to_metrics))
         self.path_to_metrics_test = Path(os.path.join(project_path, self.path_to_metrics))
+        self.path_to_graph_csv = Path(os.path.join(project_path, self.path_to_data, "graph.gexf"))
 
         self.train_dataset = None
         self.valid_dataset = None
@@ -72,6 +73,10 @@ class Graduate:
         self.optimizer = None
         self.model = None
         self.checkpoint = None
+        self.graph_reader = None
+        self.edge_index = None
+        self.edge_attr = None
+        self.node_to_idx = None
 
         # Перемещение модели на GPU, если CUDA доступен
         if not self.use_device:
@@ -152,11 +157,18 @@ class Graduate:
         self.subclasses = np.unique(self.train_dataset.subcategories)
 
     def get_model(self):
-        self.model = CustomClassifier(img_emb_shape=(1, 64, 1280),
-                                      audio_emb_shape=(1, 1500, 1280),
-                                      text_emb_shape=(1, 3, 1024),
-                                      num_categories=self.num_classes,
-                                      num_subcategories=self.num_subclasses).to(self.device)
+        # Инициализируем граф
+        self.graph_reader = GraphReader(self.path_to_graph_csv)
+        self.edge_index, self.edge_attr, self.node_to_idx = self.graph_reader.get_graph_data()
+        # Преобразуем рёбра в формат, который использует PyTorch Geometric
+        log.info(self.edge_index)
+        log.info(self.edge_attr)
+        # Инициализируем модель
+        self.model = CustomClassifierWithGAT(img_emb_shape=(1, 64, 1280),
+                                             audio_emb_shape=(1, 1500, 1280),
+                                             text_emb_shape=(1, 3, 1024),
+                                             num_categories=self.num_classes,
+                                             num_subcategories=self.num_subclasses).to(self.device)
 
     def get_classes_weights(self):
         # Получение категорий из тренировочного датасета
@@ -241,7 +253,9 @@ class Graduate:
                     # Обучаем модель
                     category_logits, subcategory_logits = self.model(img_emb=images,
                                                                      audio_emb=audios,
-                                                                     text_emb=texts)
+                                                                     text_emb=texts,
+                                                                     edge_index=self.edge_index,
+                                                                     edge_attr=self.edge_attr)
                     loss = (self.cat_criterion(category_logits, cat_labels_one_hot) +
                             self.sub_criterion(subcategory_logits, sub_labels_one_hot)) / 2
 
@@ -294,7 +308,9 @@ class Graduate:
                         # Валидируем модель
                         category_logits, subcategory_logits = self.model(img_emb=images,
                                                                          audio_emb=audios,
-                                                                         text_emb=texts)
+                                                                         text_emb=texts,
+                                                                         edge_index=self.edge_index,
+                                                                         edge_attr=self.edge_attr)
                         loss = (self.cat_criterion(category_logits, cat_labels_one_hot) +
                                 self.sub_criterion(subcategory_logits, sub_labels_one_hot)) / 2
 
@@ -406,7 +422,9 @@ class Graduate:
                     # Тестируем модель
                     category_logits, subcategory_logits = self.model(img_emb=images,
                                                                      audio_emb=audios,
-                                                                     text_emb=texts)
+                                                                     text_emb=texts,
+                                                                     edge_index=self.edge_index,
+                                                                     edge_attr=self.edge_attr)
 
                     _, cat_predicted = torch.max(category_logits, 1)
                     _, sub_predicted = torch.max(subcategory_logits, 1)

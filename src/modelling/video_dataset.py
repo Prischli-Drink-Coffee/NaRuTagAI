@@ -12,13 +12,13 @@ from torchvision import transforms
 from torch.utils.data import Dataset
 from scipy.sparse import csr_matrix
 from sklearn.model_selection import train_test_split
-from transformers.models.cvt.convert_cvt_original_pytorch_checkpoint_to_pytorch import embeddings
 
 from src import path_to_project
 from src.utils.custom_logging import setup_logging
 from src.utils.seed import seed_everything
 from src.utils.config_parser import ConfigParser
 from src import path_to_config
+from FlagEmbedding import BGEM3FlagModel
 
 
 log = setup_logging()
@@ -57,6 +57,7 @@ def collate_fn(batch):
         # Здесь можно добавить аугментацию
         text = torch.tensor(text['dense_vecs'], dtype=torch.float32)
         audio = audio.to(dtype=torch.float32)
+        image = image.to(dtype=torch.float32)
         # ...
 
         # Добавляем данные в batch
@@ -115,9 +116,9 @@ def get_datasets(data_folder: str,
     path = os.path.join(data_folder, 'metadata.csv')
     metadata = pd.read_csv(path)
 
-    # Объединяем видел по категориям
-    # metadata = metadata.groupby(['video_id', 'title', 'description', 'tag'])[['category']].agg(
-    #     separator.join).reset_index()
+    # Объединяем видео по категориям
+    metadata = metadata.groupby(['video_id', 'title', 'description', 'tag'])[['category']].agg(
+        separator.join).reset_index()
 
     # Фильтруем по выбранным категориям
     if categories is not None:

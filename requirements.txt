@@ -55,3 +55,4 @@ peft
 einops
 ffmpeg-python
 clip
+torch_geometric
