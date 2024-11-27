@@ -50,15 +50,21 @@ if [ $? -eq 0 ]; then
                 gnome-terminal -- python3 ./src/pipeline/data_preproccessor.py
                 ;;
             '3')
-                gnome-terminal -- python3 ./src/pipeline/data_graphcreator.py
+                gnome-terminal -- python3 ./src/pipeline/data_clustercreator.py
                 ;;
             '4')
-                gnome-terminal -- python3 ./src/pipeline/train.py
+                gnome-terminal -- python3 ./src/pipeline/data_graphcreator.py
                 ;;
             '5')
-                gnome-terminal -- python3 ./src/pipeline/server.py
+                gnome-terminal -- python3 ./src/pipeline/train.py
                 ;;
             '6')
+                gnome-terminal -- python3 ./src/pipeline/train_plotter.py
+                ;;
+            '7')
+                gnome-terminal -- python3 ./src/pipeline/server.py
+                ;;
+            '8')
                 gnome-terminal -- pytest ./src/pipeline/test.py
                 ;;
             *)
@@ -77,15 +83,21 @@ if [ $? -eq 0 ]; then
                 python3 ./src/pipeline/data_preproccessor.py
                 ;;
             '3')
-                python3 ./src/pipeline/data_graphcreator.py
+                python3 ./src/pipeline/data_clustercreator.py
                 ;;
             '4')
-                python3 ./src/pipeline/train.py
+                python3 ./src/pipeline/data_graphcreator.py
                 ;;
             '5')
-                python3 ./src/pipeline/server.py
+                python3 ./src/pipeline/train.py
                 ;;
             '6')
+                python3 ./src/pipeline/train_plotter.py
+                ;;
+            '7')
+                python3 ./src/pipeline/server.py
+                ;;
+            '8')
                 pytest ./src/pipeline/test.py
                 ;;
             *)

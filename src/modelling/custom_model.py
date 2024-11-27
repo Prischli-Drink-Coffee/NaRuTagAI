@@ -49,9 +49,9 @@ class GraphReader:
 
 
 class GraphAttentionNetwork(nn.Module):
-    def __init__(self, in_features: int, out_features: int, num_heads: int = 4):
+    def __init__(self, in_features: int, out_features: int, num_heads: int = 8):
         super(GraphAttentionNetwork, self).__init__()
-        self.gat1 = GATConv(in_features, out_features, heads=num_heads, concat=True)
+        self.gat1 = GATConv(in_features, out_features, heads=num_heads, concat=True, bias=True, dropout=0.05, edge_dim=1)
         self.gat2 = GATConv(out_features * num_heads, out_features, heads=1, concat=False)
 
         # Обучаемые веса рёбер
@@ -111,7 +111,7 @@ class CustomClassifierWithGAT(nn.Module):
 
         # Для категорий и подкатегорий
         self.category_out = nn.Linear(2048, self.num_categories)
-        self.subcategory_out = nn.Linear(2048, self.num_subcategories)
+        self.subcategory_out = nn.Linear(self.num_categories, self.num_subcategories)
 
 
     def forward(self,
@@ -140,7 +140,7 @@ class CustomClassifierWithGAT(nn.Module):
 
         # Получаем логиты для категорий и подкатегорий
         category_logits = self.category_out(x)
-        subcategory_logits = self.subcategory_out(x)
+        subcategory_logits = self.subcategory_out(category_logits)
 
         # Пропускаем через GAT
         outputs = []

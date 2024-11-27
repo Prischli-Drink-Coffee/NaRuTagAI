@@ -14,7 +14,8 @@ log = setup_logging()
 class MetricsVisualizer:
     def __init__(self,
                  path_to_metrics: str = None,
-                 path_to_save_plots: str = None):
+                 path_to_save_plots: str = None,
+                 part_sub: int = 13):
 
         if path_to_metrics is not None:
             self.path_to_metrics = "./metrics"
@@ -30,20 +31,26 @@ class MetricsVisualizer:
             self.path_to_save_plots = os.path.join(project_path, env.__getattr__("PLOTS_PATH"))
             os.makedirs(self.path_to_save_plots, exist_ok=True)
 
+        self.part_sub = part_sub
+
         self.train_loss_values = {}
         self.valid_loss_values = {}
         self.f1_values_valid = {}
         self.f1_values_test = {}
         self.class_acc_dir_values = {}
 
-    def visualize(self):
+    def run(self):
         # Инициализируем сохранение графиков
+        log.info("Старт процесса построения графиков")
         self.load_train_metrics()
         self.load_test_metrics()
         self.plot_metrics()
+        log.info("Графики построены и сохранены")
 
     @staticmethod
     def _load_metrics(directory, files_dict, key_name, test=False):
+        if not os.listdir(directory):
+            raise FileNotFoundError("Не найдены файлы с метриками, нечего строить")
         for file in os.listdir(directory):
             if test:
                 if file.startswith("test") and file.endswith(".pt"):
@@ -115,10 +122,10 @@ class MetricsVisualizer:
         # Общая настройка
         plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
         path = os.path.join(self.path_to_save_plots, "PlotsMetrics.png")
-        plt.savefig(path, dpi=500)
+        plt.savefig(path, dpi=300)
         plt.close()
 
-        part_sub = 13
+        part_sub = self.part_sub
 
         # --- Итерация по моделям для категорий и подкатегорий ---
         for model, class_acc_dir in self.class_acc_dir_values.items():
@@ -178,8 +185,3 @@ class MetricsVisualizer:
             plt.close()
 
             log.info("Сохранение графиков завершено")
-
-
-if __name__ == "__main__":
-    metric_collector = MetricsVisualizer()
-    metric_collector.visualize()

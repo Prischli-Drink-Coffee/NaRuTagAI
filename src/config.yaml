@@ -19,6 +19,14 @@ EmbeddingCollector:
   audio_model_path: 'openai/whisper-large-v3-turbo' # from huggingface
 
 
+GraphNodeCollector:
+  similarity_threshold: 0.65
+
+
+ClusterCollector:
+
+
+
 TrainParam:
  use_device: "cuda" # cuda, cpu
  start_learning_rate: 0.00001
@@ -37,3 +45,7 @@ TrainParam:
  val_size: 0.1
  test_size: 0.1
  seed: 17
+
+
+MetricsVisualizer:
+  part_sub: 13

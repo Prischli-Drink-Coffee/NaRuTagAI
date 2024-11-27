@@ -25,17 +25,16 @@ log = setup_logging()
 
 @dataclass
 class GraphNodeCollector:
-    path_to_data: str = os.path.join(project_path, env.__getattr__("DATA_PATH"))
-    path_to_dir: str = os.path.join(project_path, env.__getattr__("DATA_PATH"))
+    data_folder: str
     similarity_threshold: float = 0.65  # Порог сходства
 
     def __post_init__(self):
         self.text_model = BGEM3FlagModel('BAAI/bge-m3', use_fp16=False)
-        self.metadata = pd.read_csv(os.path.join(project_path, self.path_to_data, 'metadata.csv'))
+        self.metadata = pd.read_csv(os.path.join(project_path, self.data_folder, 'metadata.csv'))
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         log.info(f'device: {self.device}')
-        self.path_to_new_metadata = os.path.join(self.path_to_dir, 'metadata_newform.csv')
-        self.path_to_graph = os.path.join(self.path_to_dir, 'graph.gexf')
+        self.path_to_new_metadata = os.path.join(self.data_folder, 'metadata_newform.csv')
+        self.path_to_graph = os.path.join(self.data_folder, 'graph.gexf')
         self.cat2idx = None
         self.idx2cat = None
         self.subcat2idx = None
@@ -170,7 +169,3 @@ class GraphNodeCollector:
 
         log.info(f'Процесс завершен. Время выполнения: {time() - start:.2f} секунд')
 
-
-if __name__ == '__main__':
-    graph = GraphNodeCollector()
-    graph.run()

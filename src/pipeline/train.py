@@ -504,7 +504,6 @@ class Graduate:
 if __name__ == "__main__":
     from src import path_to_config
     from src.utils.config_parser import ConfigParser
-    from src.script.metric_collector import MetricsVisualizer
     from env import Env
 
     env = Env()
@@ -518,5 +517,3 @@ if __name__ == "__main__":
                         **train_config)
     graduate.graduate()
 
-    metrics_visualizer = MetricsVisualizer()
-    metrics_visualizer.visualize()

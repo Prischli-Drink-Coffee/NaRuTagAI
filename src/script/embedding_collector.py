@@ -36,7 +36,8 @@ class EmbeddingCollector:
         # Определяем путь к метадате
         self.metadata_path = os.path.join(project_path, self.data_folder, 'metadata.csv')
         self.metadata = pd.read_csv(self.metadata_path)
-        self.metadata.fillna("", inplace=True)  # Заменяем nan на пустую строку во всем DataFrame
+        # Очищаем метадату
+        self.metadata = self._clean_metadata(self.metadata)
         # Определяем модели для обработки изображений, текста и аудио
         self.text_model: BGEM3FlagModel = None
         self.image_model: AutoModel = None
@@ -53,6 +54,16 @@ class EmbeddingCollector:
         log.info(f'torch_dtype: {self.torch_dtype}')
         # Получаем модели для обработки изображений, текста и аудио
         self._get_models_()
+
+    @staticmethod
+    def _clean_metadata(self, metadata: pd.DataFrame) -> pd.DataFrame:
+        """Очищает метадату от пустых строк и дубликатов."""
+        # Удаляем строки, где `tag`, `description` или `title` пустые или равны NaN/None
+        cleaned_metadata = metadata.dropna(subset=['tag', 'description', 'title'])
+        # Удаляем дубликаты
+        cleaned_metadata = cleaned_metadata.drop_duplicates()
+        log.info(f"Metadata cleaned: {len(metadata)} -> {len(cleaned_metadata)} rows")
+        return cleaned_metadata
 
     def _get_models_(self):
         self.text_model = BGEM3FlagModel(self.text_model_path, use_fp16=True)
