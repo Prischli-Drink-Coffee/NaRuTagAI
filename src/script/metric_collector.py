@@ -15,21 +15,33 @@ class MetricsVisualizer:
     def __init__(self,
                  path_to_metrics: str = None,
                  path_to_save_plots: str = None,
-                 part_sub: int = 13):
+                 part_sub: int = 13,
+                 task: str = None):
 
         if path_to_metrics is not None:
-            self.path_to_metrics = "./metrics"
-            os.makedirs(self.path_to_metrics, exist_ok=True)
+            self.path_to_metrics = path_to_metrics
         else:
             self.path_to_metrics = os.path.join(project_path, env.__getattr__("METRICS_PATH"))
-            os.makedirs(self.path_to_metrics, exist_ok=True)
 
         if path_to_save_plots is not None:
-            self.path_to_save_plots = "./plots"
-            os.makedirs(self.path_to_save_plots, exist_ok=True)
+            self.path_to_save_plots = path_to_save_plots
         else:
             self.path_to_save_plots = os.path.join(project_path, env.__getattr__("PLOTS_PATH"))
-            os.makedirs(self.path_to_save_plots, exist_ok=True)
+
+        if task == "main":
+            self.path_to_metrics = os.path.join(self.path_to_metrics, "main")
+            self.path_to_save_plots = os.path.join(self.path_to_save_plots, "train_main")
+        elif task == "autoencoder":
+            self.path_to_metrics = os.path.join(self.path_to_metrics, "autoencoder")
+            self.path_to_save_plots = os.path.join(self.path_to_save_plots, "train_autoencoder")
+        elif task is None:
+            self.path_to_metrics = self.path_to_metrics
+            self.path_to_save_plots = self.path_to_metrics
+        else:
+            raise NotImplementedError("main or autoencoder or None")
+
+        os.makedirs(self.path_to_metrics, exist_ok=True)
+        os.makedirs(self.path_to_save_plots, exist_ok=True)
 
         self.part_sub = part_sub
 

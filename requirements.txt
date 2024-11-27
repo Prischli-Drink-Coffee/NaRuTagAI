@@ -56,3 +56,4 @@ einops
 ffmpeg-python
 clip
 torch_geometric
+joblib

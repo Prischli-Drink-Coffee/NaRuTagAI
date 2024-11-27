@@ -12,6 +12,7 @@ def data_clustercreator():
     config = ConfigParser.parse(path_to_config())
     collector_config = config.get('ClusterCollector', {})
     collector = ClusterCollector(data_folder=env.__getattr__("DATA_PATH"),
+                                 path_to_plots=env.__getattr__("PLOTS_PATH"),
                                  **collector_config)
     collector.run()
 

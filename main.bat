@@ -43,12 +43,14 @@ if %errorlevel% equ 0 (
         ) else if %var% == '4' (
             cmd /k python.exe ./src/pipeline/data_graphcreator.py
         ) else if %var% == '5' (
-            cmd /k python.exe ./src/pipeline/train.py
+            cmd /k python.exe ./src/pipeline/train_main.py
         ) else if %var% == '6' (
-            cmd /k python.exe ./src/pipeline/train_plotter.py
+            cmd /k python.exe ./src/pipeline/train_autoencoder.py
         ) else if %var% == '7' (
-            cmd /k python.exe ./src/pipeline/server.py
+            cmd /k python.exe ./src/pipeline/train_plotter.py
         ) else if %var% == '8' (
+            cmd /k python.exe ./src/pipeline/server.py
+        ) else if %var% == '9' (
             cmd /k pytest ./src/pipeline/test.py
         ) else (
             echo Not found value: %var%
@@ -64,12 +66,14 @@ if %errorlevel% equ 0 (
         ) else if %var% == '4' (
             python.exe ./src/pipeline/data_graphcreator.py
         ) else if %var% == '5' (
-            python.exe ./src/pipeline/train.py
+            python.exe ./src/pipeline/train_main.py
         ) else if %var% == '6' (
-            python.exe ./src/pipeline/train_plotter.py
+            python.exe ./src/pipeline/train_autoencoder.py
         ) else if %var% == '7' (
-            python.exe ./src/pipeline/server.py
+            python.exe ./src/pipeline/train_plotter.py
         ) else if %var% == '8' (
+            python.exe ./src/pipeline/server.py
+        ) else if %var% == '9' (
             pytest ./src/pipeline/test.py
         ) else (
             echo Not found value: %var%

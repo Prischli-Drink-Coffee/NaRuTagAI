@@ -24,10 +24,11 @@ GraphNodeCollector:
 
 
 ClusterCollector:
+  loky_max_cpu_count: 8
+  palette: "Blues"
 
 
-
-TrainParam:
+TrainParamMain:
  use_device: "cuda" # cuda, cpu
  start_learning_rate: 0.00001
  name_model: 'Model3'
@@ -40,12 +41,27 @@ TrainParam:
  batch_size: 10
  num_workers: 0 # bug then more 0
  pin_memory: False # turn off with cpu
- num_epochs: 30
+ num_epochs: 1
  name_optimizer: "Adam" # SGD, Adam
  val_size: 0.1
  test_size: 0.1
  seed: 17
 
 
+TrainParamAutoencoder:
+  use_device: "cuda" # cuda, cpu
+  start_learning_rate: 0.00001
+  name_model: 'Model3'
+  batch_size: 10
+  num_workers: 0 # bug then more 0
+  pin_memory: False # turn off with cpu
+  num_epochs: 1
+  name_optimizer: "Adam" # SGD, Adam
+  val_size: 0.1
+  test_size: 0.1
+  seed: 17
+
+
 MetricsVisualizer:
   part_sub: 13
+  task: "main" # autoencoder

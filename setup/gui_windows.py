@@ -14,23 +14,24 @@ def main_menu():
         log.info(' 2. Запуск data_preproccessor')
         log.info(' 3. Запуск data_clustercreator')
         log.info(' 4. Запуск data_graphcreator')
-        log.info(' 5. Запуск train')
-        log.info(' 6. Запуск train_plotter')
-        log.info(' 7. Запуск uvicorn')
-        log.info(' 8. Запуск pytest')
-        log.info(' 9. Выход из меню')
+        log.info(' 5. Запуск train_main')
+        log.info(' 6. Запуск train_autoencoder')
+        log.info(' 7. Запуск train_plotter')
+        log.info(' 8. Запуск uvicorn')
+        log.info(' 9. Запуск pytest')
+        log.info(' 10. Выход из меню')
         log.info('\n=============================================================\n')
 
         choice = input('\nСделайте выбор: ')
         log.info('')
 
-        if choice in ['1', '2', '3', '4', '5', '6', '7', '8']:
+        if choice in ['1', '2', '3', '4', '5', '6', '7', '8', '9']:
             set_key(path_to_env(), 'CHOICE', choice)  # Устанавливаем значение переменной окружения
             break
-        elif choice == '9':
+        elif choice == '10':
             sys.exit()
         else:
-            log.info('Выберите между 1-9')
+            log.info('Выберите между 1-10')
 
 
 if __name__ == '__main__':

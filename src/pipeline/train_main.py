@@ -49,9 +49,9 @@ class Graduate:
         self.date = datetime.now()
         self.name_model = self.name_model if self.name_model else None
         self.path_to_data = Path(os.path.join(project_path, self.path_to_data))
-        self.path_to_weights = Path(os.path.join(project_path, self.path_to_weights))
-        self.path_to_metrics_train = Path(os.path.join(project_path, self.path_to_metrics))
-        self.path_to_metrics_test = Path(os.path.join(project_path, self.path_to_metrics))
+        self.path_to_weights = Path(os.path.join(project_path, self.path_to_weights), 'main')
+        self.path_to_metrics_train = Path(os.path.join(project_path, self.path_to_metrics, 'main'))
+        self.path_to_metrics_test = Path(os.path.join(project_path, self.path_to_metrics, 'main'))
         self.path_to_graph_csv = Path(os.path.join(project_path, self.path_to_data, "graph.gexf"))
 
         self.train_dataset = None
@@ -509,7 +509,7 @@ if __name__ == "__main__":
     env = Env()
     config = ConfigParser.parse(path_to_config())
 
-    train_config = config.get('TrainParam', {})
+    train_config = config.get('TrainParamMain', {})
 
     graduate = Graduate(path_to_data=env.__getattr__("DATA_PATH"),
                         path_to_weights=env.__getattr__("WEIGHTS_PATH"),
