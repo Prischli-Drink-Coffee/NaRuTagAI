@@ -56,15 +56,18 @@ if [ $? -eq 0 ]; then
                 gnome-terminal -- python3 ./src/pipeline/data_graphcreator.py
                 ;;
             '5')
-                gnome-terminal -- python3 ./src/pipeline/train.py
+                gnome-terminal -- python3 ./src/pipeline/train_main.py
                 ;;
             '6')
-                gnome-terminal -- python3 ./src/pipeline/train_plotter.py
+                gnome-terminal -- python3 ./src/pipeline/train_data2vec.py
                 ;;
             '7')
-                gnome-terminal -- python3 ./src/pipeline/server.py
+                gnome-terminal -- python3 ./src/pipeline/train_plotter.py
                 ;;
             '8')
+                gnome-terminal -- python3 ./src/pipeline/server.py
+                ;;
+            '9')
                 gnome-terminal -- pytest ./src/pipeline/test.py
                 ;;
             *)
@@ -89,15 +92,18 @@ if [ $? -eq 0 ]; then
                 python3 ./src/pipeline/data_graphcreator.py
                 ;;
             '5')
-                python3 ./src/pipeline/train.py
+                python3 ./src/pipeline/train_main.py
                 ;;
             '6')
-                python3 ./src/pipeline/train_plotter.py
+                python3 ./src/pipeline/train_data2vec.py
                 ;;
             '7')
-                python3 ./src/pipeline/server.py
+                python3 ./src/pipeline/train_plotter.py
                 ;;
             '8')
+                python3 ./src/pipeline/server.py
+                ;;
+            '9')
                 pytest ./src/pipeline/test.py
                 ;;
             *)

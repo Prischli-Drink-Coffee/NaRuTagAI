@@ -5,8 +5,9 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import numpy as np
-from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from src import project_path
 from src.utils.custom_logging import setup_logging
 from pathlib import Path
@@ -17,7 +18,7 @@ import torch.nn.functional as F
 from src.utils.save_param import save_model, save_metrics_train, save_metrics_test
 from src.utils.create_dir import create_directories_if_not_exist
 from dataclasses import dataclass
-from src.modelling.custom_model import CustomClassifierWithGAT, GraphReader
+from src.modelling.data2vec import Data2VecMultimodal, MultimodalLoss
 
 log = setup_logging()
 
@@ -43,9 +44,9 @@ class Graduate:
         self.date = datetime.now()
         self.name_model = self.name_model if self.name_model else None
         self.path_to_data = Path(os.path.join(project_path, self.path_to_data))
-        self.path_to_weights = Path(os.path.join(project_path, self.path_to_weights), 'autoencoder')
-        self.path_to_metrics_train = Path(os.path.join(project_path, self.path_to_metrics), 'autoencoder')
-        self.path_to_metrics_test = Path(os.path.join(project_path, self.path_to_metrics), 'autoencoder')
+        self.path_to_weights = Path(os.path.join(project_path, self.path_to_weights), 'data2vec')
+        self.path_to_metrics_train = Path(os.path.join(project_path, self.path_to_metrics), 'data2vec')
+        self.path_to_metrics_test = Path(os.path.join(project_path, self.path_to_metrics), 'data2vec')
 
         self.train_dataset = None
         self.valid_dataset = None
@@ -129,17 +130,15 @@ class Graduate:
                                       pin_memory=self.pin_memory)
 
     def get_model(self):
-        pass
         # Инициализируем модель
-        # self.model = CustomClassifierWithGAT(img_emb_shape=(1, 64, 1280),
-        #                                      audio_emb_shape=(1, 1500, 1280),
-        #                                      text_emb_shape=(1, 3, 1024),
-        #                                      num_categories=self.num_classes,
-        #                                      num_subcategories=self.num_subclasses).to(self.device)
+        self.model = Data2VecMultimodal(['audio', 'text', 'vision'],
+                                        {'audio': 1280, 'text': 1024, 'vision': 1280},
+                                        1792,
+                                        0.995).to(self.device)
 
     def get_opt_crit_sh(self):
         # Определение функции потерь с учетом весов классов
-        self.criterion = None
+        self.criterion = MultimodalLoss(beta=1.0, alpha=0.1)
         self.optimizer = optim.__dict__[f"{self.name_optimizer}"](self.model.parameters(), lr=self.start_learning_rate)
         # Создание планировщика LR
         # ReduceLROnPlateau уменьшает скорость обучения, когда метрика перестает уменьшаться
@@ -180,18 +179,27 @@ class Graduate:
                     audios = batch["audios"].to(self.device)
                     texts = batch["texts"].to(self.device)
 
+                    if index == 10:
+                        break
+
                     # log.info(f"text.shape: {texts.shape}")
                     # log.info(f"audio.shape: {audios.shape}")
                     # log.info(f"images.shape: {images.shape}")
 
-                    # Обучаем модель
-                    # category_logits, subcategory_logits = self.model(img_emb=images,
-                    #                                                  audio_emb=audios,
-                    #                                                  text_emb=texts,
-                    #                                                  edge_index=self.edge_index,
-                    #                                                  edge_attr=self.edge_attr)
-                    # loss = (self.cat_criterion(category_logits, cat_labels_one_hot) +
-                    #         self.sub_criterion(subcategory_logits, sub_labels_one_hot)) / 2
+                    # Подаем весь батч в модель
+                    reconstructed, z_mean, z_log_var = self.model({
+                        'audio': audios.mean(dim=1).mean(dim=1),
+                        'text': texts.mean(dim=1),
+                        'vision': images.mean(dim=1)
+                    })
+                    self.model.ema_step()
+
+                    # Вычисляем loss для всего батча
+                    loss = self.criterion({
+                        'audio': audios.mean(dim=1).mean(dim=1),
+                        'text': texts.mean(dim=1),
+                        'vision': images.mean(dim=1)
+                    }, reconstructed, z_mean, z_log_var)
 
                     self.optimizer.zero_grad()
 
@@ -208,7 +216,13 @@ class Graduate:
             # Вычисление loss на валидационном датасете и метрик
             self.model.eval()
             valid_loss = 0.0
-            best_mse = 0.0
+            best_mse = float('inf')
+
+            mse_values = []
+
+            # Инициализация словарей для хранения данных по модальностям
+            all_reconstructed = {modality: [] for modality in ['audio', 'text', 'vision']}
+            all_original = {modality: [] for modality in ['audio', 'text', 'vision']}
 
             with torch.no_grad():
                 with tqdm(total=len(self.valid_loader)) as pbar_valid:
@@ -219,23 +233,35 @@ class Graduate:
                         audios = batch["audios"].to(self.device)
                         texts = batch["texts"].to(self.device)
 
+                        if index == 10:
+                            break
+
                         # Валидируем модель
-                        # category_logits, subcategory_logits = self.model(img_emb=images,
-                        #                                                  audio_emb=audios,
-                        #                                                  text_emb=texts,
-                        #                                                  edge_index=self.edge_index,
-                        #                                                  edge_attr=self.edge_attr)
-                        # loss = (self.cat_criterion(category_logits, cat_labels_one_hot) +
-                        #         self.sub_criterion(subcategory_logits, sub_labels_one_hot)) / 2
+                        reconstructed, z_mean, z_log_var = self.model({
+                            'audio': audios.mean(dim=1).mean(dim=1),
+                            'text': texts.mean(dim=1),
+                            'vision': images.mean(dim=1)
+                        })
+
+                        # Вычисляем loss для всего батча
+                        loss = self.criterion({
+                            'audio': audios.mean(dim=1).mean(dim=1),
+                            'text': texts.mean(dim=1),
+                            'vision': images.mean(dim=1)
+                        }, reconstructed, z_mean, z_log_var)
+
+                        # Добавляем данные для расчета метрик
+                        for modality in reconstructed:
+                            if modality not in all_reconstructed:
+                                all_reconstructed[modality] = []
+                            all_reconstructed[modality].append(reconstructed[modality].cpu().numpy())
+
+                        # Собираем оригинальные данные для каждой модальности
+                        all_original['audio'].append(audios.mean(dim=1).mean(dim=1).cpu().numpy())
+                        all_original['text'].append(texts.mean(dim=1).cpu().numpy())
+                        all_original['vision'].append(images.mean(dim=1).cpu().numpy())
 
                         valid_loss += loss.item() * self.batch_size
-
-                        # _, cat_predicted = torch.max(category_logits, 1)
-                        # _, sub_predicted = torch.max(subcategory_logits, 1)
-                        # all_cat_predictions.extend(cat_predicted.cpu().numpy())
-                        # all_sub_predictions.extend(sub_predicted.cpu().numpy())
-                        # all_cat_labels.extend(cat_labels.cpu().numpy())
-                        # all_sub_labels.extend(sub_labels.cpu().numpy())
 
                         # Обновляем бар
                         pbar_valid.set_description(f"(Valid)")
@@ -243,21 +269,39 @@ class Graduate:
                         pbar_valid.set_postfix(epoch=(epoch + 1), loss=valid_loss / ((index + 1) * self.batch_size))
                         pbar_valid.update(1)
 
-            epoch_train_loss = train_loss / len(self.train_dataset.video_ids)
-            epoch_valid_loss = valid_loss / len(self.valid_dataset.video_ids)
+            epoch_train_loss = train_loss / len(self.train_dataset)
+            epoch_valid_loss = valid_loss / len(self.valid_dataset)
 
+            # Вычисляем метрики для каждой модальности
+            metrics = {}
+            for modality in ['audio', 'text', 'vision']:
+                total_mse = 0.0
+                total_mae = 0.0
+                total_r2 = 0.0
+                for (y_true, y_pred) in zip(all_original[modality], all_reconstructed[modality]):
+                    total_mse += mean_squared_error(y_true, y_pred)
+                    total_mae += mean_absolute_error(y_true, y_pred)
+                    total_r2 += r2_score(y_true, y_pred)
+                metrics[modality] = {'MSE': total_mse / len(all_original[modality]),
+                                     'MAE': total_mae / len(all_original[modality]),
+                                     'R2': total_r2 / len(all_original[modality])}
+                log.info(f"Validation {modality.capitalize()} MSE: {total_mse:.4f},"
+                         f" MAE: {total_mae:.4f}, R2: {total_r2:.4f}")
 
-            log.info(f"Test MAE: {mae}, MSE: {mse}, R2: {r2}")
+            # Вычисляем среднее значение MSE по всем модальностям
+            average_mse = np.mean([metrics[modality]['MSE'] for modality in metrics])
 
-            # we want to save the model if the accuracy is the best
-            if mse > best_mse:
+            # Проверка на лучшее значение среднего mse по всем модальностям
+            if average_mse < best_mse:
+                best_mse = average_mse
+                # Сохранение модели, если среднее mse лучше
                 save_model(self.path_to_weights,
                            self.name_model,
                            self.model.state_dict(),
                            self.optimizer.state_dict(),
                            self.num_epochs)
 
-            mse_values.append(mse)
+            mse_values.append(average_mse)
 
             # Сообщаем планировщику LR о текущей ошибке на валидационном наборе
             self.scheduler.step(epoch_valid_loss)
@@ -272,7 +316,7 @@ class Graduate:
                 train_loss_values,
                 valid_loss_values,
                 mse_values,
-                "mse",
+                "avg mse",
                 self.date,
                 self.name_model
             )
@@ -284,47 +328,83 @@ class Graduate:
 
     # Функция для оценки модели на тестовом датасете
     def evaluate_model(self):
-        self.model.eval()
-        correct = 0
-        total = 0
+        total_loss = 0.0
+        all_reconstructed = []
+        all_original = []
+
+        # Инициализация словарей для хранения данных по модальностям
+        all_reconstructed = {modality: [] for modality in ['audio', 'text', 'vision']}
+        all_original = {modality: [] for modality in ['audio', 'text', 'vision']}
 
         with torch.no_grad():
             with tqdm(total=len(self.test_loader)) as pbar_test:
                 for index, batch in enumerate(self.test_loader):
-
                     # Распаковка данных
                     video_ids = batch["video_ids"]
                     images = batch["images"].to(self.device)
                     audios = batch["audios"].to(self.device)
                     texts = batch["texts"].to(self.device)
 
-                    # Тестируем модель
-                    # category_logits, subcategory_logits = self.model(img_emb=images,
-                    #                                                  audio_emb=audios,
-                    #                                                  text_emb=texts,
-                    #                                                  edge_index=self.edge_index,
-                    #                                                  edge_attr=self.edge_attr)
+                    if index == 10:
+                        break
 
-                    # _, cat_predicted = torch.max(category_logits, 1)
-                    # _, sub_predicted = torch.max(subcategory_logits, 1)
-                    # all_cat_predictions.extend(cat_predicted.cpu().numpy())
-                    # all_sub_predictions.extend(sub_predicted.cpu().numpy())
-                    # all_cat_labels.extend(cat_labels.cpu().numpy())
-                    # all_sub_labels.extend(sub_labels.cpu().numpy())
+                    # Тестируем модель
+                    reconstructed, z_mean, z_log_var = self.model({
+                        'audio': audios.mean(dim=1).mean(dim=1),
+                        'text': texts.mean(dim=1),
+                        'vision': images.mean(dim=1)
+                    })
+
+                    # Вычисляем loss для текущего батча
+                    loss = self.criterion({
+                        'audio': audios.mean(dim=1).mean(dim=1),
+                        'text': texts.mean(dim=1),
+                        'vision': images.mean(dim=1)
+                    }, reconstructed, z_mean, z_log_var)
+
+                    total_loss += loss.item() * self.batch_size
+
+                    # Добавляем данные для расчета метрик
+                    for modality in reconstructed:
+                        if modality not in all_reconstructed:
+                            all_reconstructed[modality] = []
+                        all_reconstructed[modality].append(reconstructed[modality].cpu().numpy())
+
+                    # Собираем оригинальные данные для каждой модальности
+                    all_original['audio'].append(audios.mean(dim=1).mean(dim=1).cpu().numpy())
+                    all_original['text'].append(texts.mean(dim=1).cpu().numpy())
+                    all_original['vision'].append(images.mean(dim=1).cpu().numpy())
 
                     # Обновляем бар
                     pbar_test.set_description(f"(Test)")
                     pbar_test.unit = " sample"
-                    pbar_test.set_postfix(correct=correct, total=total)
+                    pbar_test.set_postfix(loss=total_loss / ((index + 1) * self.batch_size))
                     pbar_test.update(1)
 
+        # Вычисляем метрики для каждой модальности
+        metrics = {}
+        for modality in ['audio', 'text', 'vision']:
+            total_mse = 0.0
+            total_mae = 0.0
+            total_r2 = 0.0
+            for (y_true, y_pred) in zip(all_original[modality], all_reconstructed[modality]):
+                total_mse += mean_squared_error(y_true, y_pred)
+                total_mae += mean_absolute_error(y_true, y_pred)
+                total_r2 += r2_score(y_true, y_pred)
+            metrics[modality] = {'MSE': total_mse / len(all_original[modality]),
+                                 'MAE': total_mae / len(all_original[modality]),
+                                 'R2': total_r2 / len(all_original[modality])}
+            log.info(f"Text {modality.capitalize()} MSE: {total_mse:.4f},"
+                     f" MAE: {total_mae:.4f}, R2: {total_r2:.4f}")
 
-        log.info(f"Test MAE: {mae}, MSE: {mse}, R2: {r2}")
+        # Вычисляем среднее значение MSE по всем модальностям
+        average_mse = np.mean([metrics[modality]['MSE'] for modality in metrics])
 
+        # Сохраняем метрики
         save_metrics_test(self.path_to_metrics_test,
                           self.name_model,
-                          mse,
-                          'mse',
+                          average_mse,
+                          'avg mse',
                           None,
                           self.date)
 
@@ -337,7 +417,7 @@ if __name__ == "__main__":
     env = Env()
     config = ConfigParser.parse(path_to_config())
 
-    train_config = config.get('TrainParamAutoencoder', {})
+    train_config = config.get('TrainParamData2Vec', {})
 
     graduate = Graduate(path_to_data=env.__getattr__("DATA_PATH"),
                         path_to_weights=env.__getattr__("WEIGHTS_PATH"),

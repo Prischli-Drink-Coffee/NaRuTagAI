@@ -48,7 +48,7 @@ def save_metrics_test(path_to_metrics_test,
         }
     else:
         metric = {
-            f'{metric}_value': f1
+            f'{name_metric}_value': f1
         }
     # Сохранение метрик
     path = os.path.join(path_to_metrics_test,

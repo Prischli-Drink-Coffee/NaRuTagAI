@@ -15,7 +15,7 @@ def main_menu():
         log.info(' 3. Запуск data_clustercreator')
         log.info(' 4. Запуск data_graphcreator')
         log.info(' 5. Запуск train_main')
-        log.info(' 6. Запуск train_autoencoder')
+        log.info(' 6. Запуск train_data2vec')
         log.info(' 7. Запуск train_plotter')
         log.info(' 8. Запуск uvicorn')
         log.info(' 9. Запуск pytest')

@@ -32,8 +32,6 @@ class Graduate:
     start_learning_rate: float = 0.0001
     list_no_include_cat: list = None
     list_no_include_sub: list = None
-    max_title_length: int = 1024
-    max_description_length: int = 4096
     num_classes: int = 43
     num_subclasses: int = 1024
     batch_size: int = 10

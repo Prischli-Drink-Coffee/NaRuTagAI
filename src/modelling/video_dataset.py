@@ -252,9 +252,9 @@ class VideoDataset(Dataset):
         subcategory = self.subcategories[idx]
         subcategory_id = self.subcat2idx[subcategory]
         embeddings = self.process_embeddings(video_id)
-        title = self.truncate_string(self.metadata['title'].values[idx], train_config['max_title_length'])
+        title = self.truncate_string(self.metadata['title'].values[idx], 10000)
         description = self.truncate_string(self.metadata['description'].values[idx],
-                                           train_config['max_description_length'])
+                                           10000)
 
         return {
             "video_id": video_id,

@@ -45,7 +45,7 @@ if %errorlevel% equ 0 (
         ) else if %var% == '5' (
             cmd /k python.exe ./src/pipeline/train_main.py
         ) else if %var% == '6' (
-            cmd /k python.exe ./src/pipeline/train_autoencoder.py
+            cmd /k python.exe ./src/pipeline/train_data2vec.py
         ) else if %var% == '7' (
             cmd /k python.exe ./src/pipeline/train_plotter.py
         ) else if %var% == '8' (
@@ -68,7 +68,7 @@ if %errorlevel% equ 0 (
         ) else if %var% == '5' (
             python.exe ./src/pipeline/train_main.py
         ) else if %var% == '6' (
-            python.exe ./src/pipeline/train_autoencoder.py
+            python.exe ./src/pipeline/train_data2vec.py
         ) else if %var% == '7' (
             python.exe ./src/pipeline/train_plotter.py
         ) else if %var% == '8' (

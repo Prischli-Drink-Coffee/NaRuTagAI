@@ -34,8 +34,6 @@ TrainParamMain:
  name_model: 'Model3'
  list_no_include_cat: None # ['Обзоры и распаковки товаров', 'Лайфстайл', 'Недвижимость', 'Здоровье', 'Природа', 'Дизайн', 'Техника и оборудование', 'Бизнес и предпринимательство', 'Культура', 'Религия', 'Строительство и ремонт', 'Сад и огород', 'Аудиокниги', 'Еда', 'Интервью', 'Развлечения', 'Лайфхаки', 'Эзотерика', 'Охота и рыбалка', 'Наука', 'Политика', 'Психология', 'Аудио', 'Технологии и интернет', 'Красота', 'Телепередачи', 'Детям', 'Аниме', 'Хобби', 'Видеоигры', 'Юмор', 'Обучение', 'Спорт', 'Разное', 'Путешествия', 'Животные', 'Новости и СМИ', 'Мультфильмы', 'Музыка', 'Сериалы', 'Фильмы', 'Авто-мото']
  list_no_include_sub: None # ['Обзоры и распаковки товаров', 'Лайфстайл', 'Недвижимость', 'Здоровье', 'Природа', 'Дизайн', 'Техника и оборудование', 'Бизнес и предпринимательство', 'Культура', 'Религия', 'Строительство и ремонт', 'Сад и огород', 'Ауд
- max_title_length: 10000
- max_description_length: 10000
  num_classes: 43 # count category
  num_subclasses: 1007 # count category
  batch_size: 10
@@ -48,14 +46,14 @@ TrainParamMain:
  seed: 17
 
 
-TrainParamAutoencoder:
+TrainParamData2Vec:
   use_device: "cuda" # cuda, cpu
   start_learning_rate: 0.00001
-  name_model: 'Model3'
+  name_model: 'data2vec_v1'
   batch_size: 10
   num_workers: 0 # bug then more 0
   pin_memory: False # turn off with cpu
-  num_epochs: 1
+  num_epochs: 30
   name_optimizer: "Adam" # SGD, Adam
   val_size: 0.1
   test_size: 0.1
