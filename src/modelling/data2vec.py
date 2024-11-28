@@ -71,7 +71,7 @@ class Data2VecMultimodal(nn.Module):
             ),
         })
 
-    def forward(self, inputs):
+    def forward(self, inputs, latent=False):
         latent_representations = []
 
         for modality in self.modalities:
@@ -91,9 +91,11 @@ class Data2VecMultimodal(nn.Module):
         eps = torch.randn_like(std)
         z = z_mean + eps * std
 
-        reconstructed = {modality: self.vae_decoder[modality](z) for modality in self.modalities}
-
-        reconstructed = {k: self.dropout(v) for k, v in reconstructed.items()}
+        if not latent:
+            reconstructed = {modality: self.vae_decoder[modality](z) for modality in self.modalities}
+            reconstructed = {k: self.dropout(v) for k, v in reconstructed.items()}
+        else:
+            reconstructed = z
 
         return reconstructed, z_mean, z_log_var
 
@@ -109,8 +111,7 @@ class Data2VecMultimodal(nn.Module):
         """
         with torch.no_grad():
             self.eval()
-            latent, _, _ = self.forward(inputs)
-            self.train()
+            latent, _, _ = self.forward(inputs, latent=True)
         return latent
 
 
@@ -183,9 +184,6 @@ class MultimodalLoss(nn.Module):
         Returns:
             torch.Tensor: Итоговое значение лосса.
         """
-
-        # Вычисление размера для паддинга
-        max_size = max([x.size(1) for x in inputs.values()])  # Размер по второму измерению (размерность признаков)
 
         # Вычисление размера для паддинга
         max_size = max([x.size(1) for x in inputs.values()])  # Размер по второму измерению (размерность признаков)

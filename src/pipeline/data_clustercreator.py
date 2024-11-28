@@ -13,6 +13,7 @@ def data_clustercreator():
     collector_config = config.get('ClusterCollector', {})
     collector = ClusterCollector(data_folder=env.__getattr__("DATA_PATH"),
                                  path_to_plots=env.__getattr__("PLOTS_PATH"),
+                                 path_to_weights=env.__getattr__("WEIGHTS_PATH"),
                                  **collector_config)
     collector.run()
 

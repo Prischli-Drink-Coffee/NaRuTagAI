@@ -179,9 +179,6 @@ class Graduate:
                     audios = batch["audios"].to(self.device)
                     texts = batch["texts"].to(self.device)
 
-                    if index == 10:
-                        break
-
                     # log.info(f"text.shape: {texts.shape}")
                     # log.info(f"audio.shape: {audios.shape}")
                     # log.info(f"images.shape: {images.shape}")
@@ -232,9 +229,6 @@ class Graduate:
                         images = batch["images"].to(self.device)
                         audios = batch["audios"].to(self.device)
                         texts = batch["texts"].to(self.device)
-
-                        if index == 10:
-                            break
 
                         # Валидируем модель
                         reconstructed, z_mean, z_log_var = self.model({
@@ -344,9 +338,6 @@ class Graduate:
                     images = batch["images"].to(self.device)
                     audios = batch["audios"].to(self.device)
                     texts = batch["texts"].to(self.device)
-
-                    if index == 10:
-                        break
 
                     # Тестируем модель
                     reconstructed, z_mean, z_log_var = self.model({

@@ -191,3 +191,4 @@ cython_debug/
 /src/stuff/train.py
 /src/EDA/sample_submission.csv
 /src/EDA/submission.csv
+/src/plots/

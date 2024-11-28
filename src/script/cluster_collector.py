@@ -13,10 +13,12 @@ import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 import numpy as np
 import seaborn as sns
+from pathlib import Path
 
 from src import project_path
 from src.utils.custom_logging import setup_logging
 from src.utils.create_dir import create_directories_if_not_exist
+from src.modelling.data2vec import Data2VecMultimodal
 
 from time import time
 
@@ -27,6 +29,8 @@ log = setup_logging()
 class ClusterCollector:
     data_folder: str
     path_to_plots: str
+    path_to_weights: str
+    name_model: str
     loky_max_cpu_count: int
     palette: str
 
@@ -43,6 +47,29 @@ class ClusterCollector:
         self.path_to_img_emb = os.path.join(project_path, self.data_folder, 'embeddings', 'images')
         self.path_to_plots = os.path.join(project_path, self.path_to_plots, 'clusters')
         create_directories_if_not_exist([self.path_to_plots])
+
+        self.path_to_weights = Path(os.path.join(project_path, self.path_to_weights), 'data2vec')
+
+        self.model = Data2VecMultimodal(['audio', 'text', 'vision'],
+                                        {'audio': 1280, 'text': 1024, 'vision': 1280},
+                                        1792,
+                                        0.995).to(torch.device('cpu'))
+        self.load_checkpoint()
+
+    def load_checkpoint(self):
+        path = os.path.join(self.path_to_weights, f"{self.name_model}.pt")
+        try:
+            if os.path.isfile(path):
+                self.checkpoint = torch.load(path, map_location=torch.device('cpu'), weights_only=False)
+                try:
+                    self.model.load_state_dict(self.checkpoint['model_state_dict'])
+                    log.info("Веса успешно загружены")
+                except Exception as ex:
+                    log.info("Ошибка загрузки предварительно обученной модели", exc_info=ex)
+            else:
+                log.info("Не найден файл с моделью")
+        except Exception as ex:
+            log.info("Ошибка загрузки предварительно обученной модели", exc_info=ex)
 
     def run(self):
         start = time()
@@ -77,9 +104,6 @@ class ClusterCollector:
         with tqdm(total=len(self.metadata)) as pbar:
             for index, row in self.metadata.iterrows():
 
-                if index == 100:
-                    break
-
                 if modality == 'txt':
                     emb.append({
                         "video_id": row["video_id"],
@@ -107,6 +131,7 @@ class ClusterCollector:
         return emb
 
     def reduce_and_plot_tsne(self, embeddings: Dict[str, List[Dict[str, torch.Tensor]]]) -> None:
+
         # Словарь для цветов каждой модальности
         modality_colors = {
             'txt': 'blue',
@@ -124,6 +149,7 @@ class ClusterCollector:
         combined_labels = []
         concat_embeddings = []  # Для хранения сконкатенированных эмбеддингов
         concat_labels = []  # Метка для всех сконкатенированных эмбеддингов
+        latent_embeddings = []  # Латентное прострнаство трех модальностей
 
         for modality, emb_list in embeddings.items():
             for emb in emb_list:
@@ -144,9 +170,21 @@ class ClusterCollector:
             concat_embeddings.append(np.vstack(modality_embeddings))
             concat_labels.append(modality)
 
+        # Кодируем три модальности в один вектор
+        for (txt, aud, img) in zip(embeddings['txt'], embeddings['aud'], embeddings['img']):
+            latent = self.model.get_latent_space({
+                'audio': aud['embedding'].unsqueeze(0),
+                'text': txt['embedding'].unsqueeze(0),
+                'vision': img['embedding'].unsqueeze(0)
+            })
+            latent_embeddings.append(latent.squeeze(0))
+        latent_embeddings = np.vstack(latent_embeddings)
+
         # Объединяем сконкатенированные эмбеддинги всех модальностей
         concat_embeddings_all = np.concatenate(concat_embeddings, axis=0)
         concat_labels_all = ['concat'] * concat_embeddings_all.shape[0]
+
+        latent_labels_all = ['latent'] * latent_embeddings.shape[0]
 
         # Убедимся, что данные имеют правильную форму
         combined_embeddings = np.array(combined_embeddings)  # Форматируем в 2D
@@ -156,6 +194,7 @@ class ClusterCollector:
         tsne = TSNE(n_components=2, random_state=42)
         reduced_combined = tsne.fit_transform(combined_embeddings)
         reduced_concat = tsne.fit_transform(concat_embeddings_all)
+        reduced_latent = tsne.fit_transform(latent_embeddings)
 
         # Преобразуем результат в DataFrame
         tsne_combined_df = pd.DataFrame({
@@ -170,8 +209,14 @@ class ClusterCollector:
             'modality': concat_labels_all
         })
 
+        tsne_latent_df = pd.DataFrame({
+            'x': reduced_latent[:, 0],
+            'y': reduced_latent[:, 1],
+            'modality': latent_labels_all
+        })
+
         # Построение графиков
-        fig, axs = plt.subplots(2, 2, figsize=(16, 12))
+        fig, axs = plt.subplots(3, 2, figsize=(16, 18))
         fig.suptitle(f"Результаты t-SNE для модальностей и сконкатенированных эмбеддингов", fontsize=14)
 
         # 1. Histplot для отдельных модальностей
@@ -183,7 +228,7 @@ class ClusterCollector:
                 y='y',
                 ax=axs[0, 0],
                 color=modality_colors[modality],
-                bins=20
+                bins=30
             )
         axs[0, 0].set_title("Histplot для модальностей")
 
@@ -205,7 +250,7 @@ class ClusterCollector:
             y='y',
             ax=axs[1, 0],
             color='purple',
-            bins=20
+            bins=30
         )
         axs[1, 0].set_title("Histplot для сконкатенированных эмбеддингов")
 
@@ -218,6 +263,26 @@ class ClusterCollector:
         )
         axs[1, 1].set_title("KDE Plot для сконкатенированных эмбеддингов")
 
+        # 5. Histplot для сконкатенированных эмбеддингов
+        sns.histplot(
+            data=tsne_latent_df,
+            x='x',
+            y='y',
+            ax=axs[2, 0],
+            color='pink',
+            bins=30
+        )
+        axs[2, 0].set_title("Histplot для мультимодального эмбеддинга")
+
+        # 6. KDE Plot для сконкатенированных эмбеддингов
+        sns.kdeplot(
+            x=tsne_latent_df['x'],
+            y=tsne_latent_df['y'],
+            ax=axs[2, 1],
+            color='pink'
+        )
+        axs[2, 1].set_title("KDE Plot для мультимодального эмбеддинга")
+
         from matplotlib.lines import Line2D
 
         legend_handles = [
@@ -225,6 +290,7 @@ class ClusterCollector:
             Line2D([0], [0], color='green', lw=2, label='aud'),
             Line2D([0], [0], color='red', lw=2, label='img'),
             Line2D([0], [0], color='purple', lw=2, label='merge'),
+            Line2D([0], [0], color='pink', lw=2, label='latent'),
         ]
 
         # Добавляем легенду на график
@@ -232,13 +298,13 @@ class ClusterCollector:
             handles=legend_handles,
             loc='upper center',  # Легенда будет располагаться относительно верхнего центра
             bbox_to_anchor=(0.5, 0.95),  # Опускаем её ниже фигуры
-            ncol=4,  # Число колонок в легенде
+            ncol=5,  # Число колонок в легенде
             frameon=False  # Убираем рамку вокруг легенды (опционально)
         )
 
         # Сохранение графиков
         fig.tight_layout(rect=[0, 0, 1, 0.95])
-        save_path = os.path.join(self.path_to_plots, "tsne_separate_and_concat.png")
+        save_path = os.path.join(self.path_to_plots, "tsne_separate_and_concat_and_latent.png")
         fig.savefig(save_path, dpi=300)
         fig.clear()
         log.info(f'График t-SNE для модальностей и сконкатенированных эмбеддингов сохранён по пути: {save_path}')
