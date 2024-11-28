@@ -62,4 +62,4 @@ TrainParamData2Vec:
 
 MetricsVisualizer:
   part_sub: 13
-  task: "main" # autoencoder
+  task: "data2vec" # data2vec

@@ -316,7 +316,7 @@ class Graduate:
                 train_loss_values,
                 valid_loss_values,
                 mse_values,
-                "avg mse",
+                "avg_mse",
                 self.date,
                 self.name_model
             )
@@ -404,7 +404,7 @@ class Graduate:
         save_metrics_test(self.path_to_metrics_test,
                           self.name_model,
                           average_mse,
-                          'avg mse',
+                          'avg_mse',
                           None,
                           self.date)
 
