@@ -14,11 +14,15 @@ from sklearn.manifold import TSNE
 import numpy as np
 import seaborn as sns
 from pathlib import Path
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
 
 from src import project_path
 from src.utils.custom_logging import setup_logging
 from src.utils.create_dir import create_directories_if_not_exist
 from src.modelling.data2vec import Data2VecMultimodal
+from mpl_toolkits.mplot3d import Axes3D
+import random
 
 from time import time
 
@@ -32,7 +36,7 @@ class ClusterCollector:
     path_to_weights: str
     name_model: str
     loky_max_cpu_count: int
-    palette: str
+    task: str
 
     def __post_init__(self):
 
@@ -81,7 +85,10 @@ class ClusterCollector:
             "img": self.get_emb("img")
         }
 
-        self.reduce_and_plot_tsne(embeddings)
+        if self.task == "tsne":
+            self.reduce_and_plot_tsne(embeddings)
+        if self.task == "cluster":
+            self.cluster_and_plot(embeddings)
 
         log.info(f'Завершение процесса кластеризации')
         log.info(f'Время завершения: {time() - start} секунд')
@@ -130,7 +137,9 @@ class ClusterCollector:
 
         return emb
 
-    def reduce_and_plot_tsne(self, embeddings: Dict[str, List[Dict[str, torch.Tensor]]]) -> None:
+    def reduce_and_plot_tsne(self, embeddings: dict):
+
+        log.info(f'Запуск процесса tSNE')
 
         # Словарь для цветов каждой модальности
         modality_colors = {
@@ -139,38 +148,42 @@ class ClusterCollector:
             'img': 'red'
         }
 
+        # Получение категорий для каждого video_id
+        video_id_to_category = dict(zip(self.metadata['video_id'], self.metadata['category']))
+
         # Находим максимальную длину среди всех эмбеддингов
         max_length = max(
             emb["embedding"].shape[0] for emb_list in embeddings.values() for emb in emb_list
         )
 
-        # Собираем все эмбеддинги и метки для каждой модальности
         combined_embeddings = []
         combined_labels = []
-        concat_embeddings = []  # Для хранения сконкатенированных эмбеддингов
-        concat_labels = []  # Метка для всех сконкатенированных эмбеддингов
-        latent_embeddings = []  # Латентное прострнаство трех модальностей
+        concat_embeddings = []
+        concat_labels = []
+        concat_categories = []  # Категории для сконкатенированных эмбеддингов
+        latent_embeddings = []
+        latent_categories = []  # Категории для латентного пространства
 
         for modality, emb_list in embeddings.items():
             for emb in emb_list:
                 emb_vector = emb["embedding"].numpy()
-                # Дополняем до максимальной длины нулями, если необходимо
                 if emb_vector.shape[0] < max_length:
                     emb_vector = np.pad(emb_vector, (0, max_length - emb_vector.shape[0]), mode='constant')
 
                 combined_embeddings.append(emb_vector)
                 combined_labels.append(modality)
 
-            # Конкатенация всех эмбеддингов для данной модальности
             modality_embeddings = [
                 np.pad(e["embedding"].numpy(), (0, max_length - e["embedding"].shape[0]), mode='constant')
                 if e["embedding"].shape[0] < max_length else e["embedding"].numpy()
                 for e in emb_list
             ]
             concat_embeddings.append(np.vstack(modality_embeddings))
-            concat_labels.append(modality)
+            concat_labels.extend([modality] * len(modality_embeddings))
+            concat_categories.extend([
+                video_id_to_category[emb["video_id"]] for emb in emb_list
+            ])
 
-        # Кодируем три модальности в один вектор
         for (txt, aud, img) in zip(embeddings['txt'], embeddings['aud'], embeddings['img']):
             latent = self.model.get_latent_space({
                 'audio': aud['embedding'].unsqueeze(0),
@@ -178,21 +191,15 @@ class ClusterCollector:
                 'vision': img['embedding'].unsqueeze(0)
             })
             latent_embeddings.append(latent.squeeze(0))
+            latent_categories.append(video_id_to_category[txt["video_id"]])
+
         latent_embeddings = np.vstack(latent_embeddings)
 
-        # Объединяем сконкатенированные эмбеддинги всех модальностей
         concat_embeddings_all = np.concatenate(concat_embeddings, axis=0)
-        concat_labels_all = ['concat'] * concat_embeddings_all.shape[0]
-
-        latent_labels_all = ['latent'] * latent_embeddings.shape[0]
-
-        # Убедимся, что данные имеют правильную форму
-        combined_embeddings = np.array(combined_embeddings)  # Форматируем в 2D
-        concat_embeddings_all = np.array(concat_embeddings_all)  # Форматируем в 2D
 
         # Применяем t-SNE к отдельным эмбеддингам и сконкатенированным
         tsne = TSNE(n_components=2, random_state=42)
-        reduced_combined = tsne.fit_transform(combined_embeddings)
+        reduced_combined = tsne.fit_transform(np.array(combined_embeddings))
         reduced_concat = tsne.fit_transform(concat_embeddings_all)
         reduced_latent = tsne.fit_transform(latent_embeddings)
 
@@ -206,18 +213,22 @@ class ClusterCollector:
         tsne_concat_df = pd.DataFrame({
             'x': reduced_concat[:, 0],
             'y': reduced_concat[:, 1],
-            'modality': concat_labels_all
+            'category': concat_categories
         })
 
         tsne_latent_df = pd.DataFrame({
             'x': reduced_latent[:, 0],
             'y': reduced_latent[:, 1],
-            'modality': latent_labels_all
+            'category': latent_categories
         })
 
         # Построение графиков
-        fig, axs = plt.subplots(3, 2, figsize=(16, 18))
-        fig.suptitle(f"Результаты t-SNE для модальностей и сконкатенированных эмбеддингов", fontsize=14)
+        fig, axs = plt.subplots(3, 2, figsize=(16, 22))
+        fig.suptitle(f"Результаты t-SNE", fontsize=20)
+
+        unique_categories = tsne_concat_df['category'].unique()
+        palette = {cat: sns.color_palette("hsv", len(unique_categories))[i]
+                   for i, cat in enumerate(unique_categories)}
 
         # 1. Histplot для отдельных модальностей
         for modality in embeddings.keys():
@@ -230,7 +241,9 @@ class ClusterCollector:
                 color=modality_colors[modality],
                 bins=30
             )
-        axs[0, 0].set_title("Histplot для модальностей")
+        axs[0, 0].set_title("Histplot для модальностей", fontsize=16)
+        axs[0, 0].set_xlabel('x', fontsize=16)
+        axs[0, 0].set_ylabel('y', fontsize=16)
 
         # 2. KDE Plot для отдельных модальностей
         for modality in embeddings.keys():
@@ -239,73 +252,201 @@ class ClusterCollector:
                 x=subset['x'],
                 y=subset['y'],
                 ax=axs[0, 1],
-                color=modality_colors[modality],
+                color=modality_colors[modality]
             )
-        axs[0, 1].set_title("KDE Plot для модальностей")
+        axs[0, 1].set_title("KDE Plot для модальностей", fontsize=16)
+        axs[0, 1].set_xlabel('x', fontsize=16)
+        axs[0, 1].set_ylabel('y', fontsize=16)
 
         # 3. Histplot для сконкатенированных эмбеддингов
         sns.histplot(
             data=tsne_concat_df,
             x='x',
             y='y',
+            hue='category',
+            palette=palette,
+            bins=100,
             ax=axs[1, 0],
-            color='purple',
-            bins=30
+            legend=False
         )
-        axs[1, 0].set_title("Histplot для сконкатенированных эмбеддингов")
+        axs[1, 0].set_title("Histplot для сконкатенированных эмбеддингов", fontsize=16)
+        axs[1, 0].set_xlabel('x', fontsize=16)
+        axs[1, 0].set_ylabel('y', fontsize=16)
 
         # 4. KDE Plot для сконкатенированных эмбеддингов
         sns.kdeplot(
-            x=tsne_concat_df['x'],
-            y=tsne_concat_df['y'],
-            ax=axs[1, 1],
-            color='purple'
+            data=tsne_concat_df,
+            x='x',
+            y='y',
+            hue=None,
+            color='purple',
+            ax=axs[1, 1]
         )
-        axs[1, 1].set_title("KDE Plot для сконкатенированных эмбеддингов")
+        axs[1, 1].set_title("KDE Plot для сконкатенированных эмбеддингов", fontsize=16)
+        axs[1, 1].set_xlabel('x', fontsize=16)
+        axs[1, 1].set_ylabel('y', fontsize=16)
 
-        # 5. Histplot для сконкатенированных эмбеддингов
+        # 5. Histplot для латентных эмбеддингов
         sns.histplot(
             data=tsne_latent_df,
             x='x',
             y='y',
+            hue='category',
+            palette=palette,
             ax=axs[2, 0],
-            color='pink',
-            bins=30
+            bins=100,
+            legend=False
         )
-        axs[2, 0].set_title("Histplot для мультимодального эмбеддинга")
+        axs[2, 0].set_title("Histplot для мультимодального эмбеддинга", fontsize=16)
+        axs[2, 0].set_xlabel('x', fontsize=16)
+        axs[2, 0].set_ylabel('y', fontsize=16)
 
-        # 6. KDE Plot для сконкатенированных эмбеддингов
+        # 6. KDE Plot для латентных эмбеддингов
         sns.kdeplot(
-            x=tsne_latent_df['x'],
-            y=tsne_latent_df['y'],
-            ax=axs[2, 1],
-            color='pink'
+            data=tsne_latent_df,
+            x='x',
+            y='y',
+            hue=None,
+            color='purple',
+            ax=axs[2, 1]
         )
-        axs[2, 1].set_title("KDE Plot для мультимодального эмбеддинга")
+        axs[2, 1].set_title("KDE Plot для мультимодального эмбеддинга", fontsize=16)
+        axs[2, 1].set_xlabel('x', fontsize=16)
+        axs[2, 1].set_ylabel('y', fontsize=16)
 
         from matplotlib.lines import Line2D
 
         legend_handles = [
-            Line2D([0], [0], color='blue', lw=2, label='txt'),
-            Line2D([0], [0], color='green', lw=2, label='aud'),
-            Line2D([0], [0], color='red', lw=2, label='img'),
-            Line2D([0], [0], color='purple', lw=2, label='merge'),
-            Line2D([0], [0], color='pink', lw=2, label='latent'),
+            Line2D([0], [0], color='blue', lw=5, label='txt'),
+            Line2D([0], [0], color='green', lw=5, label='aud'),
+            Line2D([0], [0], color='red', lw=5, label='img'),
+            Line2D([0], [0], color='purple', lw=5, label='merge'),
+            Line2D([0], [0], color='pink', lw=5, label='latent'),
         ]
 
         # Добавляем легенду на график
         fig.legend(
             handles=legend_handles,
             loc='upper center',  # Легенда будет располагаться относительно верхнего центра
-            bbox_to_anchor=(0.5, 0.95),  # Опускаем её ниже фигуры
+            bbox_to_anchor=(0.5, 0.96),  # Опускаем её ниже фигуры
             ncol=5,  # Число колонок в легенде
-            frameon=False  # Убираем рамку вокруг легенды (опционально)
+            frameon=False,  # Убираем рамку вокруг легенды (опционально)
+            fontsize=16
+        )
+
+        # Легенда
+        legend_handles = [
+            Line2D([0], [0], marker='s', color='w', markerfacecolor=palette[cat], markersize=14,
+                   label=cat, markeredgecolor='black', markeredgewidth=1)
+            for cat in unique_categories
+        ]
+
+        # Добавляем легенду на график
+        fig.legend(
+            handles=legend_handles,
+            loc='upper center',  # Легенда будет располагаться относительно верхнего центра
+            bbox_to_anchor=(0.5, 0.1),  # Опускаем её ниже фигуры
+            ncol=6,  # Число колонок в легенде
+            frameon=False,  # Убираем рамку вокруг легенды (опционально)
+            fontsize=10
         )
 
         # Сохранение графиков
-        fig.tight_layout(rect=[0, 0, 1, 0.95])
+        fig.tight_layout(rect=[0.06, 0.11, 0.94, 0.94])
         save_path = os.path.join(self.path_to_plots, "tsne_separate_and_concat_and_latent.png")
         fig.savefig(save_path, dpi=300)
-        fig.clear()
-        log.info(f'График t-SNE для модальностей и сконкатенированных эмбеддингов сохранён по пути: {save_path}')
+        plt.close(fig)
+        log.info(f'График t-SNE: {save_path}')
 
+    def cluster_and_plot(self, embeddings: dict):
+        """
+        Функция для кластеризации эмбеддингов по категориям и подкатегориям.
+        """
+        log.info(f'Запуск процесса кластеризации KMeans по категориям и подкатегориям')
+
+        # Категории и подкатегории из метаданных
+        categories = self.metadata['category'].unique()
+        subcategories = self.metadata['tag'].unique()
+
+        # Словарь для хранения эмбеддингов по категориям и подкатегориям
+        embeddings_by_category = {cat: [] for cat in categories}
+        embeddings_by_subcategory = {subcat: [] for subcat in subcategories}
+
+        # Кодируем три модальности в один вектор
+        for (txt, aud, img) in zip(embeddings['txt'], embeddings['aud'], embeddings['img']):
+            latent = self.model.get_latent_space({
+                'audio': aud['embedding'].unsqueeze(0),
+                'text': txt['embedding'].unsqueeze(0),
+                'vision': img['embedding'].unsqueeze(0)
+            })
+            latent = latent.squeeze(0)
+            video_id = txt['video_id']
+            category = self.metadata[self.metadata['video_id'] == video_id]['category'].values[0]
+            subcategory = self.metadata[self.metadata['video_id'] == video_id]['tag'].values[0]
+            embeddings_by_category[category].append(latent.numpy())
+            embeddings_by_subcategory[subcategory].append(latent.numpy())
+
+        def perform_kmeans_and_plot_3d(embeddings_dict, title, axs_row):
+            """
+            Вспомогательная функция для выполнения кластеризации и построения 3D-графиков.
+            """
+            combined_embeddings = []
+            labels = []
+
+            # Объединяем эмбеддинги в один массив
+            for label, emb_list in embeddings_dict.items():
+                if emb_list:  # Пропускаем, если эмбеддингов для категории/подкатегории нет
+                    # Уменьшаем количество точек с помощью случайной выборки
+                    sample_size = min(len(emb_list), 300)  # Ограничиваем до 500 точек на категорию
+                    sampled_emb_list = random.sample(emb_list, sample_size)  # Выборка с помощью random.sample
+                    combined_embeddings.extend(sampled_emb_list)
+                    labels.extend([label] * len(sampled_emb_list))
+
+            combined_embeddings = np.array(combined_embeddings)
+
+            # Понижение размерности для визуализации (PCA)
+            pca = PCA(n_components=3, random_state=42)
+            reduced_embeddings = pca.fit_transform(combined_embeddings)
+
+            # Выполнение KMeans кластеризации
+            num_clusters = 43
+            kmeans = KMeans(n_clusters=num_clusters, random_state=42)
+            cluster_labels = kmeans.fit_predict(combined_embeddings)
+
+            # Преобразуем результат в DataFrame для удобства
+            cluster_df = pd.DataFrame({
+                'x': reduced_embeddings[:, 0],
+                'y': reduced_embeddings[:, 1],
+                'z': reduced_embeddings[:, 2],
+                'label': labels,
+                'cluster': cluster_labels
+            })
+
+            # Построение 3D-графиков
+            ax_label = fig.add_subplot(2, 2, 2 * axs_row + 1, projection='3d')
+            scatter_label = ax_label.scatter(
+                cluster_df['x'], cluster_df['y'], cluster_df['z'], c=cluster_df['label'].factorize()[0], cmap='viridis'
+            )
+            ax_label.set_title(f'{title} (по меткам)')
+            fig.colorbar(scatter_label, ax=ax_label, shrink=0.5)
+
+            ax_cluster = fig.add_subplot(2, 2, 2 * axs_row + 2, projection='3d')
+            scatter_cluster = ax_cluster.scatter(
+                cluster_df['x'], cluster_df['y'], cluster_df['z'], c=cluster_df['cluster'], cmap='viridis'
+            )
+            ax_cluster.set_title(f'{title} (по кластерам)')
+            fig.colorbar(scatter_cluster, ax=ax_cluster, shrink=0.5)
+
+        # Построение графиков для категорий и подкатегорий
+        fig = plt.figure(figsize=(16, 12))
+        fig.suptitle('Кластеризация эмбеддингов KMeans (3D)', fontsize=16)
+
+        perform_kmeans_and_plot_3d(embeddings_by_category, 'Категории', 0)
+        perform_kmeans_and_plot_3d(embeddings_by_subcategory, 'Подкатегории', 1)
+
+        # Сохранение графиков
+        save_path = os.path.join(self.path_to_plots, "kmeans_categories_subcategories_3d.png")
+        fig.savefig(save_path, dpi=300)
+        plt.close(fig)
+
+        log.info(f'3D-графики KMeans: {save_path}')

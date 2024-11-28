@@ -24,9 +24,9 @@ GraphNodeCollector:
 
 
 ClusterCollector:
+  task: "cluster" # cluster
   name_model: "data2vec_v1"
   loky_max_cpu_count: 8
-  palette: "Blues"
 
 
 TrainParamMain:
@@ -63,4 +63,4 @@ TrainParamData2Vec:
 
 MetricsVisualizer:
   part_sub: 13
-  task: "data2vec" # data2vec # main
+  task: "data2vec" # main
