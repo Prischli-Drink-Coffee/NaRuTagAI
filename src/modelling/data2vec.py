@@ -3,6 +3,7 @@ import copy
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from src.modelling.loupe import Gated_Embedding_Unit
 
 
 class Data2VecMultimodal(nn.Module):
@@ -10,7 +11,7 @@ class Data2VecMultimodal(nn.Module):
     Data2VecMultimodal: Универсальная модель для объединения трёх модальностей
     (аудио, текста и изображений) в единое латентное пространство.
     """
-    def __init__(self, modalities, embed_dims, latent_dim, ema_decay=0.999):
+    def __init__(self, modalities, embed_dims, latent_dim, ema_decay=0.999, cluster_size=8):
         super(Data2VecMultimodal, self).__init__()
 
         assert set(modalities).issubset({'audio', 'text', 'vision'}), "Unsupported modalities!"
@@ -21,6 +22,12 @@ class Data2VecMultimodal(nn.Module):
         # Регрессионные головы для приведения к латентному пространству
         self.regression_heads = nn.ModuleDict({
             modality: self._build_regression_head(embed_dims[modality])
+            for modality in modalities
+        })
+
+        # Gated Embedding Unit для улучшенной обработки признаков
+        self.gated_units = nn.ModuleDict({
+            modality: Gated_Embedding_Unit(embed_dims[modality], latent_dim)
             for modality in modalities
         })
 
@@ -38,11 +45,12 @@ class Data2VecMultimodal(nn.Module):
         self.dropout = nn.Dropout(p=0.1)
 
 
-    def _build_regression_head(self, input_dim):
+    @staticmethod
+    def _build_regression_head(input_dim):
         return nn.Sequential(
             nn.Linear(input_dim, input_dim * 2),
             nn.GELU(),
-            nn.Linear(input_dim * 2, self.latent_dim)
+            nn.Linear(input_dim * 2, input_dim)
         )
 
     def _build_vae_encoder(self):
@@ -77,6 +85,7 @@ class Data2VecMultimodal(nn.Module):
         for modality in self.modalities:
             x = inputs[modality]
             x = self.regression_heads[modality](x)
+            x = self.gated_units[modality](x)
             latent_representations.append(x)
 
         assert all([x.shape == latent_representations[0].shape for x in latent_representations]), \

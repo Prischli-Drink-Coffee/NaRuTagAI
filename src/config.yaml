@@ -50,7 +50,7 @@ TrainParamMain:
 TrainParamData2Vec:
   use_device: "cuda" # cuda, cpu
   start_learning_rate: 0.00001
-  name_model: 'data2vec_v1'
+  name_model: 'data2vec_v2'
   batch_size: 10
   num_workers: 0 # bug then more 0
   pin_memory: False # turn off with cpu

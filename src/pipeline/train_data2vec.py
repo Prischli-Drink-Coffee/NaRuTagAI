@@ -20,6 +20,7 @@ from src.utils.create_dir import create_directories_if_not_exist
 from dataclasses import dataclass
 from src.modelling.data2vec import Data2VecMultimodal, MultimodalLoss
 
+
 log = setup_logging()
 
 
@@ -28,7 +29,7 @@ class Graduate:
     path_to_data: str = "./data"
     path_to_weights: str = "./weights"
     path_to_metrics: str = "./metrics"
-    name_model: str = "ru_bert"
+    name_model: str = "data2vec"
     use_device: str = None
     start_learning_rate: float = 0.0001
     batch_size: int = 10
