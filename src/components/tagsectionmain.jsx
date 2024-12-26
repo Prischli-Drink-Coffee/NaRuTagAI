@@ -1,71 +1,110 @@
-import { Box, Flex, Text, Image } from "@chakra-ui/react";
-import hashtag from "../images/hashtag.svg";
+import { Box, Flex, Text, VStack } from "@chakra-ui/react";
 
+const TagSection = ({ video }) => {
+  return (
+    <Box maxW="840px" width="100%" position="relative">
+      <Box position="relative" bg="#ffffff" p={{ base: "20px", sm: "40px" }}>
+        {/* Заголовок */}
+        <Text
+          width="100%"
+          fontFamily="Montserrat"
+          fontWeight="700"
+          fontSize={{ base: "24px", sm: "32px" }}
+          lineHeight="39px"
+          color="#023BA3"
+          mb="20px"
+        >
+          As we understand, this is about...
+        </Text>
 
-const TagSection = () => {
-    return (
-        <Box position="absolute" width="720px" height="159px" left="350px" top="658px">
-            {/* Заголовок */}
-            <Flex direction="column" align="flex-start" gap="30px">
-                <Text
-                    width="720px"
-                    height="39px"
-                    fontFamily="Montserrat"
-                    fontWeight="700"
-                    fontSize="32px !important"
-                    lineHeight="39px"
-                    color="#023BA3"
-                >
-                    As we understand, this is about...
-                </Text>
+        {/* Рендер иерархии */}
+        <VStack
+          align="flex-start"
+          spacing="20px"
+          width="100%"
+          pl={{ base: "10px", sm: "20px" }} // Отступы для всей структуры
+        >
+          {Object.entries(video).map(([category, subCategories]) => (
+            <Box key={category} width="100%">
+              {/* Категория */}
+              <Text
+                fontFamily="Montserrat"
+                fontWeight="700"
+                fontSize={{ base: "20px", sm: "24px" }}
+                lineHeight="32px"
+                color="#4B8BFC"
+                mb="10px"
+              >
+                {category}
+              </Text>
 
-                {/* Теги */}
-                <Flex direction="row" align="flex-start" gap="10px" wrap="wrap" width="720px" height="90px">
-                    <Box
-                        width="87.43px"
-                        height="90px"
-                        background="transporent"
-                        borderRadius="8px"
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
+              {/* Подкатегории */}
+              <VStack align="flex-start" spacing="16px" pl="20px">
+                {Object.entries(subCategories).map(([subCategory, tags]) => (
+                  <Box key={subCategory} width="100%">
+                    {/* Подкатегория */}
+                    <Text
+                      fontFamily="Montserrat"
+                      fontWeight="600"
+                      fontSize={{ base: "18px", sm: "20px" }}
+                      lineHeight="28px"
+                      color="#023BA3"
+                      mb="8px"
                     >
+                      {subCategory}
+                    </Text>
 
-                        <Image src={hashtag} alt="HashTag" />
-
-                    </Box>
-
-                    {/* Массив с тегами */}
-                    <Flex direction="row" gap="10px" flexWrap="wrap" width="622.57px" height="90px">
-                        {["Sport", "Competition", "Snowboard", "Freestyle", "Girl", "Giraffe Costume"].map((tag, index) => (
-                            <Box
-                                key={index}
-                                width={`${tag.length * 15}px`} // Вычисляем ширину по длине текста
-                                height="40px"
-                                background="#4B8BFC"
-                                borderRadius="12px"
-                                display="flex"
-                                alignItems="center"
-                                justifyContent="center"
-                                padding="0px 20px"
-                                textAlign="center"
-                            >
-                                <Text
-                                    fontFamily="Montserrat"
-                                    fontWeight="700"
-                                    fontSize="18px"
-                                    lineHeight="22px"
-                                    color="#FFFFFF"
-                                >
-                                    {tag}
-                                </Text>
-                            </Box>
-                        ))}
+                    {/* Теги */}
+                    <Flex
+                      direction="row"
+                      gap="10px"
+                      flexWrap="wrap"
+                      pl="20px" // Отступ для тегов
+                    >
+                      {/* Проверяем, является ли tags массивом */}
+                      {(Array.isArray(tags) ? tags : []).map((tag, index) => (
+                        <Box
+                          key={index}
+                          width="auto"
+                          maxWidth="200px"
+                          height="60px"
+                          background="#4B8BFC"
+                          borderRadius="12px"
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="center"
+                          padding={{
+                            base: "0px 8px",
+                            sm: "0px 12px",
+                          }}
+                          textAlign="center"
+                        >
+                          <Text
+                            fontFamily="Montserrat"
+                            fontWeight="500"
+                            fontSize={{
+                              base: "12px",
+                              sm: "14px",
+                              md: "16px",
+                              lg: "18px",
+                            }}
+                            lineHeight="22px"
+                            color="#FFFFFF"
+                          >
+                            {tag}
+                          </Text>
+                        </Box>
+                      ))}
                     </Flex>
-                </Flex>
-            </Flex>
-        </Box>
-    );
+                  </Box>
+                ))}
+              </VStack>
+            </Box>
+          ))}
+        </VStack>
+      </Box>
+    </Box>
+  );
 };
 
 export default TagSection;

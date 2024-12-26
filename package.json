@@ -1,5 +1,5 @@
 {
-  "name": "sklad_front",
+  "name": "NaRuTagAI",
   "homepage": ".",
   "version": "0.1.0",
   "private": true,
@@ -43,8 +43,7 @@
   },
   "eslintConfig": {
     "extends": [
-      "react-app",
-      "react-app/jest"
+      "react-app"
     ]
   },
   "browserslist": {

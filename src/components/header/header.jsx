@@ -1,119 +1,98 @@
-import React, { useRef, useState } from "react";
+import React from "react";
 import logo from "./../../images/logo.svg";
 import {
-    Flex,
-    Image,
-    Button,
-    Text,
-    Box
+  Flex,
+  Image,
+  HStack,
+  Text,
+  Box
 } from "@chakra-ui/react";
-import useWindowDimensions from "../../hooks/window_dimensions";
 import tr_logo from "../../images/transparent_logo.svg";
-import { useNavigate } from "react-router";
+// import { useNavigate } from "react-router";
 
 const Header = () => {
-    const btnRef = useRef();
-    const navigate = useNavigate();
-    const { width } = useWindowDimensions();
+  // const btnRef = useRef();
+  // const navigate = useNavigate();
 
-    // Создаем состояние для активной кнопки
-    const [activeButton, setActiveButton] = useState("login");
-
-    // Функции для навигации и изменения состояния кнопки
-    const to_auth = () => {
-        navigate("/sign_in");
-        setActiveButton("login");
-    };
-
-    const to_reg = () => {
-        navigate("/sign_up");
-        setActiveButton("register");
-    };
-
-    // Задаем стили для активной и неактивной кнопок
-    const activeStyle = {
-        bg: "#4B8BFC",
-        color: "#FFFFFF",
-        fontWeight: "700"
-    };
-
-    const inactiveStyle = {
-        bg: "#FFFFFF",
-        color: "#1D1D1D",
-        fontWeight: "500",
-        _hover: { bg: "#f0f0f0" }
-    };
-
-    return (
-        <Flex
-            as="header"
-            position="absolute"
-            width={width}
-            height="100px"
-            left="50%"
-            transform="translateX(-50%)"
-            top="0"
-            bg="#FFFFFF"
-            align="center"
-            justify="space-between"
-            p="0"
+  return (
+    <Flex
+      as="header"
+      width="100%"
+      height={{ base: "80px", sm: "100px" }} // Адаптивная высота header
+      bg="#FFFFFF"
+      align="center"
+      justify={{ base: "center", sm: "flex-start" }} // Для мобильных по центру, для десктопа влево
+      p={{ base: "10px", sm: "20px" }} // Адаптивные отступы
+      flexDirection={{ base: "column", sm: "row" }} // Для маленьких экранов элементы по вертикали, для больших - по горизонтали
+    >
+      <Box
+        zIndex={1} // Делаем его "под" обычным логотипом
+        position="absolute"
+      >
+        <Image
+          src={tr_logo}
+          boxSize={{ base: "150px", sm: "300px" }} // Адаптивный размер логотипа
+          alt="Logo"
+        />
+      </Box>
+      {/* Логотип и название NaRuTagAI */}
+      <HStack
+        bg="transparent"
+        ml={{ base: "none", sm: "100px" }}
+        zIndex={2} // Это поверх прозрачного логотипа
+      >
+        <Image
+          src={logo}
+          boxSize={{ base: "20px", sm: "28px" }} // Адаптивный размер логотипа
+          alt="Logo"
+        />
+        <Text
+          fontFamily="Montserrat"
+          fontWeight="700"
+          fontSize={{ base: "16px", sm: "18px" }} // Адаптивный размер шрифта
+          lineHeight="22px"
+          color="#4B8BFC"
         >
-            <Box>
-                <Image src={tr_logo} boxSize="300px" alt="Logo" position="absolute" top="-110px" left="110px" />
-            </Box>
+          NaRuTagAI
+        </Text>
+      </HStack>
 
-            {/* Логотип и название NaRuTagAI */}
-            <Flex
-                position="absolute"
-                left="243px"
-                top="50%"
-                transform="translateY(-50%)"
-                align="center"
-                gap="8px"
-            >
-                <Image src={logo} boxSize="28px" alt="Logo" />
-                <Text
-                    fontFamily="Montserrat"
-                    fontWeight="700"
-                    fontSize="18px"
-                    lineHeight="22px"
-                    color="#4B8BFC"
-                >
-                    NaRuTagAI
-                </Text>
-            </Flex>
-
-            {/* Кнопки навигации "Вход" и "Регистрация" */}
-            <Flex
-                display="flex"
-                flexDirection="row"
-                justifyContent="flex-end"
-                alignItems="center"
-                gap="30px"
-                position="absolute"
-                width="284px"
-                height="42px"
-                left="1113px"
-                top="29px"
-            >
-                {/* Кнопка "Вход" */}
-                <Button
-                    {...(activeButton === "login" ? activeStyle : inactiveStyle)}  // Задаем стили в зависимости от активной кнопки
-                    onClick={to_auth}  // Обновляем состояние при клике
-                >
-                    Вход
-                </Button>
-
-                {/* Кнопка "Регистрация" */}
-                <Button
-                    {...(activeButton === "register" ? activeStyle : inactiveStyle)}  // Задаем стили для другой кнопки
-                    onClick={to_reg}  // Обновляем состояние при клике
-                >
-                    Регистрация
-                </Button>
-            </Flex>
-        </Flex>
-    );
+      {/* Кнопки навигации на больших экранах
+      <Flex
+        display={{ base: "none", sm: "flex" }} // Скрываем кнопки на мобильных устройствах
+        flexDirection="row"
+        justifyContent="flex-end"
+        alignItems="center"
+        gap="20px"
+      >
+        <Button
+          bg="#4B8BFC"
+          color="#fff"
+          fontWeight="700"
+          fontSize="16px"
+          borderRadius="8px"
+          _hover={{ bg: "#376fcb" }}
+          px="16px"
+          py="8px"
+        >
+          Вход
+        </Button>
+        <Button
+          bg="#fff"
+          color="#4B8BFC"
+          fontWeight="700"
+          fontSize="16px"
+          borderRadius="8px"
+          _hover={{ bg: "#f0f0f0" }}
+          px="16px"
+          py="8px"
+        >
+          Регистрация
+        </Button>
+      </Flex>
+      */}
+    </Flex>
+  );
 };
 
 export default Header;
