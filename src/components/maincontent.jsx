@@ -1,4 +1,4 @@
-import { Box, Flex, Text, Button, FormControl, Input } from "@chakra-ui/react";
+import { Box, Flex, Text, Button, FormControl, Input, Spinner } from "@chakra-ui/react";
 import { useBreakpointValue } from "@chakra-ui/react";
 import { useState } from "react";
 import useWindowDimensions from "../hooks/window_dimensions";
@@ -6,6 +6,7 @@ import useWindowDimensions from "../hooks/window_dimensions";
 const ContentSection = ({ onFetch }) => {
   const { height } = useWindowDimensions();
   const [url, setUrl] = useState(""); // Состояние для URL
+  const [isLoading, setIsLoading] = useState(false); // Состояние для индикатора загрузки
   const buttonText = useBreakpointValue({
     base: "What about it?",
     sm: "About it?",
@@ -13,7 +14,8 @@ const ContentSection = ({ onFetch }) => {
 
   const handleFetch = () => {
     if (url.trim()) {
-      onFetch(url); // Передаем URL в родительский компонент
+      setIsLoading(true); // Устанавливаем состояние загрузки в true
+      onFetch(url).finally(() => setIsLoading(false)); // После завершения обработки выключаем индикатор загрузки
     }
   };
 
@@ -75,8 +77,13 @@ const ContentSection = ({ onFetch }) => {
             lineHeight="22px"
             color="#FFFFFF"
             _hover={{ background: "#376fcb" }}
+            disabled={isLoading} // Отключаем кнопку, пока идет процесс загрузки
           >
-            {buttonText}
+            {isLoading ? (
+              <Spinner size="sm" color="white" /> // Показываем спиннер при загрузке
+            ) : (
+              buttonText
+            )}
           </Button>
         </Flex>
       </Flex>

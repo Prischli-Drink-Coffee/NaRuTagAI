@@ -66,7 +66,7 @@ const TagSection = ({ video }) => {
                         <Box
                           key={index}
                           width="auto"
-                          maxWidth="200px"
+                          maxWidth="300px"
                           height="60px"
                           background="#4B8BFC"
                           borderRadius="12px"
