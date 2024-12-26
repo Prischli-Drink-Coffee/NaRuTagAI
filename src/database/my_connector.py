@@ -46,4 +46,5 @@ class Database:
             return cursor.fetchall()
 
 
-db = Database()
+if env.__getattr__("OFF_DATABASE") == "FALSE":
+    db = Database()

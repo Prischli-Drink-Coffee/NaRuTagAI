@@ -24,43 +24,48 @@ GraphNodeCollector:
 
 
 ClusterCollector:
-  task: "cluster" # cluster
-  name_model: "data2vec_v1"
+  task: "cluster"
   loky_max_cpu_count: 8
 
 
-TrainParamMain:
+TrainParamEmbed2Tag:
  use_device: "cuda" # cuda, cpu
+ pretrained_weight_tag: "emelnov/keyT5_tags_custom"
+ name_model: 'Embed2TagV1'
+ early_stopping: True
+ num_beams: 3
+ concat_embed_dim: 3840
+ max_length_generation: 15
+ tag_similarity: 0.7
  start_learning_rate: 0.00001
- name_model: 'Model3'
- list_no_include_cat: None # ['Обзоры и распаковки товаров', 'Лайфстайл', 'Недвижимость', 'Здоровье', 'Природа', 'Дизайн', 'Техника и оборудование', 'Бизнес и предпринимательство', 'Культура', 'Религия', 'Строительство и ремонт', 'Сад и огород', 'Аудиокниги', 'Еда', 'Интервью', 'Развлечения', 'Лайфхаки', 'Эзотерика', 'Охота и рыбалка', 'Наука', 'Политика', 'Психология', 'Аудио', 'Технологии и интернет', 'Красота', 'Телепередачи', 'Детям', 'Аниме', 'Хобби', 'Видеоигры', 'Юмор', 'Обучение', 'Спорт', 'Разное', 'Путешествия', 'Животные', 'Новости и СМИ', 'Мультфильмы', 'Музыка', 'Сериалы', 'Фильмы', 'Авто-мото']
- list_no_include_sub: None # ['Обзоры и распаковки товаров', 'Лайфстайл', 'Недвижимость', 'Здоровье', 'Природа', 'Дизайн', 'Техника и оборудование', 'Бизнес и предпринимательство', 'Культура', 'Религия', 'Строительство и ремонт', 'Сад и огород', 'Ауд
- num_classes: 43 # count category
- num_subclasses: 1007 # count category
- batch_size: 10
- num_workers: 0 # bug then more 0
- pin_memory: False # turn off with cpu
+ batch_size: 2
+ num_workers: 0
  num_epochs: 1
+ pin_memory: False
  name_optimizer: "Adam" # SGD, Adam
- val_size: 0.1
- test_size: 0.1
+ val_size: 0.2
+ test_size: 0.2
  seed: 17
 
 
-TrainParamData2Vec:
+TrainParamEmbed2CatSubcat:
   use_device: "cuda" # cuda, cpu
   start_learning_rate: 0.00001
-  name_model: 'data2vec_v2'
+  name_model: 'Embed2CatSubcatv2'
+  num_classes: 43
+  num_subclasses: 1024
+  list_no_include_cat: None
+  list_no_include_sub: None
   batch_size: 10
   num_workers: 0 # bug then more 0
   pin_memory: False # turn off with cpu
-  num_epochs: 30
+  num_epochs: 20
   name_optimizer: "Adam" # SGD, Adam
-  val_size: 0.1
-  test_size: 0.1
+  val_size: 0.05
+  test_size: 0.05
   seed: 17
 
 
 MetricsVisualizer:
   part_sub: 13
-  task: "data2vec" # main
+  task: "embed2tag" # embed2tag  # embed2catsubcat

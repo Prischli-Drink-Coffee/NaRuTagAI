@@ -23,7 +23,6 @@ from FlagEmbedding import BGEM3FlagModel
 
 log = setup_logging()
 config = ConfigParser.parse(path_to_config())
-train_config = config.get('TrainParam', {})
 
 
 # Обновляем функцию collate_fn, добавляя возможность аугментации
@@ -58,6 +57,13 @@ def collate_fn(batch):
         text = torch.tensor(text['dense_vecs'], dtype=torch.float32)
         audio = audio.to(dtype=torch.float32)
         image = image.to(dtype=torch.float32)
+
+        # Обработка эмбеддингов
+        audio = audio.mean(dim=0)
+        audio = audio.mean(dim=0)
+        image = image.mean(dim=0)
+        text = text.mean(dim=0)
+
         # ...
 
         # Добавляем данные в batch
@@ -252,9 +258,9 @@ class VideoDataset(Dataset):
         subcategory = self.subcategories[idx]
         subcategory_id = self.subcat2idx[subcategory]
         embeddings = self.process_embeddings(video_id)
-        title = self.truncate_string(self.metadata['title'].values[idx], 10000)
+        title = self.truncate_string(self.metadata['title'].values[idx], 512)
         description = self.truncate_string(self.metadata['description'].values[idx],
-                                           10000)
+                                           512)
 
         return {
             "video_id": video_id,

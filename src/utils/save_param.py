@@ -39,8 +39,8 @@ def save_metrics_test(path_to_metrics_test,
                       name_model,
                       f1,
                       name_metric,
-                      class_acc_dir=None,
-                      date=None):
+                      date,
+                      class_acc_dir=None):
     if class_acc_dir is not None:
         metric = {
             f'{name_metric}_value': f1,

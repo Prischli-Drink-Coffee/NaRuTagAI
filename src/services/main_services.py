@@ -1,22 +1,19 @@
-# import os
-# import cv2
-# import shutil
-# import torch
-# import librosa
-# import numpy as np
-# from pathlib import Path
-# from typing import Optional, Tuple
+import os
+import cv2
+import shutil
+import torch
+import librosa
+import numpy as np
+from pathlib import Path
+from typing import Optional, Tuple
 # from src.database.models import Predict, Video, VideoInference, Inference
-# from src.modelling.video_processing import VideoProcessor
-# from src.utils.custom_logging import setup_logging
-# from src.script.predict import VideoTagInference
-# from src.services import (video_services, video_inference_services, inference_services)
-# from src.utils.list_to_str import encode_list_to_string
-#
-# log = setup_logging()
-# VideoTagInference = VideoTagInference()
-#
-#
+from src.modelling.video_processing import VideoProcessor
+from src.utils.custom_logging import setup_logging
+from src.script.predict import VideoTagInference
+
+log = setup_logging()
+
+
 # class VideoAudioProcessor:
 #     """
 #     Класс для обработки видео и аудио.
@@ -91,99 +88,98 @@
 #         frames_tensor = self.process_frames_from_folder(frame_path)
 #         audio_tensor = self.process_audio(audio_path)
 #         return frames_tensor, audio_tensor
-#
-#
-# class VideoInferencePipeline:
-#     """
-#     Класс для управления процессом обработки видео, инференса и удаления временных файлов.
-#     """
-#
-#     def __init__(self, predict: Predict, temp_path: str):
-#         """
-#         Инициализирует параметры инференса.
-#
-#         :param predict: Объект модели Predict с данными видео.
-#         :param temp_path: Временная папка для хранения видео и аудио файлов.
-#         """
-#         self.predict = predict
-#         self.temp_path = temp_path
-#         self.audio_folder = Path(self.temp_path) / "audio"
-#         self.frame_folder = Path(self.temp_path) / "frames"
-#         self.processor = VideoProcessor(
-#             url=predict.Url,
-#             data_folder=temp_path,
-#             min_duration=1,
-#             max_duration=60,
-#             quality='worst',
-#             n_frames=64,
-#             frame_dimensions=f"{(224, 224)}",
-#         )
-#
-#     def run(self) -> Optional[list]:
-#         """
-#         Выполняет полный процесс обработки видео, включая инференс и очистку временной папки.
-#
-#         :return: Список предсказанных тегов и категорий.
-#         """
-#         try:
-#             # Обрабатываем видео
-#             title, description, video_id = self.processor.process_video()
-#             if not video_id:
-#                 raise Exception("Video not found")
-#
-#             frame_path = self.frame_folder / f"{video_id}"
-#             audio_path = self.audio_folder / f"{video_id}.mp3"
-#
-#             # Обрабатываем кадры и аудио
-#             # video_audio_processor = VideoAudioProcessor()
-#             # frames_tensor, audio_tensor = video_audio_processor.process_video_and_audio(str(frame_path),
-#             #                                                                             str(audio_path))
-#
-#             # Создаем запись видео в базе данных
-#             video_services.create_video(Video(url=self.predict.Url,
-#                                               name=video_id,
-#                                               title=title,
-#                                               dscription=description,
-#                                               duration=0))
-#
-#             # Выполняем инференс
-#             predict_list = VideoTagInference.predict(title=title,
-#                                                        description=description)
-#
-#             # inference = inference_services.create_inference(Inference(CategoryIDS=encode_list_to_string(predict_list),
-#                                                                         #  TagIDS=None))
-#             # video_inference_services.create_video_inference(VideoInference(VideoID=video_id, InferenceID=inference.ID))
-#
-#             return predict_list
-#
-#         except Exception as ex:
-#             log.exception(f"Error during prediction process: {ex}")
-#         finally:
-#             # Удаляем временную папку после завершения работы
-#             self.cleanup_temp()
-#
-#     def cleanup_temp(self):
-#         """
-#         Удаляет временные файлы и папки, созданные в процессе обработки видео.
-#         """
-#         if os.path.exists(self.temp_path):
-#             try:
-#                 shutil.rmtree(self.temp_path)
-#                 log.info(f"Temporary folder {self.temp_path} successfully deleted.")
-#             except Exception as e:
-#                 log.error(f"Failed to delete temporary folder {self.temp_path}: {e}")
-#
-#
-# def predict(predict: Predict) -> Optional[list]:
-#     """
-#     Функция предсказания тегов и категорий для видео.
-#
-#     :param predict: Модель Predict с информацией о видео.
-#     :return: Список предсказанных тегов и категорий.
-#     """
-#     from __init__ import path_to_project
-#     path_to_temp = os.path.join(path_to_project(), "src/script/temp")
-#
-#     # Инициализируем и запускаем инференс видео
-#     video_inference = VideoInferencePipeline(predict, temp_path=path_to_temp)
-#     return video_inference.run()
+
+
+class VideoInferencePipeline:
+    """
+    Класс для управления процессом обработки видео, инференса и удаления временных файлов.
+    """
+
+    def __init__(self, url: str, temp_path: str):
+        """
+        Инициализирует параметры инференса.
+
+        :param predict: Объект модели Predict с данными видео.
+        :param temp_path: Временная папка для хранения видео и аудио файлов.
+        """
+        self.predict = url
+        self.temp_path = temp_path
+        self.audio_folder = Path(self.temp_path) / "audio"
+        self.frame_folder = Path(self.temp_path) / "frames"
+        self.processor = VideoProcessor(
+            url=self.predict,
+            data_folder=self.temp_path,
+            min_duration=0,
+            max_duration=60,
+            quality='worst',
+            n_frames=64,
+            frame_dimensions=f"{(224, 224)}",
+        )
+
+    def run(self):
+        """
+        Выполняет полный процесс обработки видео, включая инференс и очистку временной папки.
+
+        :return: Список предсказанных тегов и категорий.
+        """
+        try:
+            # Обрабатываем видео
+            title, description, video_id = self.processor.process_video()
+            if not video_id:
+                raise Exception("Video not found")
+
+            frame_path = self.frame_folder / f"{video_id}"
+            audio_path = self.audio_folder / f"{video_id}.mp3"
+
+            # # Создаем запись видео в базе данных
+            # video_services.create_video(Video(url=self.predict.Url,
+            #                                   name=video_id,
+            #                                   title=title,
+            #                                   dscription=description,
+            #                                   duration=0))
+
+            video_tag_inference = VideoTagInference()
+
+            # Выполняем инференс
+            predict = video_tag_inference.predict(title=title,
+                                                  description=description,
+                                                  path_images=str(frame_path),
+                                                  path_audio=str(audio_path))
+
+            # inference = inference_services.create_inference(Inference(CategoryIDS=encode_list_to_string(predict_list),
+                                                                         # TagIDS=None))
+            # video_inference_services.create_video_inference(VideoInference(VideoID=video_id, InferenceID=inference.ID))
+
+            return predict
+
+        except Exception as ex:
+            log.exception(f"Error during prediction process: {ex}")
+        finally:
+            # Удаляем временную папку после завершения работы
+            self.cleanup_temp()
+
+    def cleanup_temp(self):
+        """
+        Удаляет временные файлы и папки, созданные в процессе обработки видео.
+        """
+        if os.path.exists(self.temp_path):
+            try:
+                shutil.rmtree(self.temp_path)
+                log.info(f"Temporary folder {self.temp_path} successfully deleted.")
+            except Exception as e:
+                log.error(f"Failed to delete temporary folder {self.temp_path}: {e}")
+
+
+def predict(url: str):
+    """
+    Функция предсказания тегов и категорий для видео.
+
+    :param url: Ссылка url на видео.
+    :return: Список предсказанных тегов и категорий.
+    """
+    from __init__ import path_to_project
+    path_to_temp = os.path.join(path_to_project(), "src/script/temp")
+
+    # Инициализируем и запускаем инференс видео
+    video_inference = VideoInferencePipeline(url, temp_path=path_to_temp)
+    return video_inference.run()

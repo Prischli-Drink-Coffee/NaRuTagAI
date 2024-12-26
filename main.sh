@@ -56,10 +56,10 @@ if [ $? -eq 0 ]; then
                 gnome-terminal -- python3 ./src/pipeline/data_graphcreator.py
                 ;;
             '5')
-                gnome-terminal -- python3 ./src/pipeline/train_main.py
+                gnome-terminal -- python3 ./src/pipeline/train_embed2tag.py
                 ;;
             '6')
-                gnome-terminal -- python3 ./src/pipeline/train_data2vec.py
+                gnome-terminal -- python3 ./src/pipeline/train_embed2catsubcat.py
                 ;;
             '7')
                 gnome-terminal -- python3 ./src/pipeline/train_plotter.py
@@ -92,10 +92,10 @@ if [ $? -eq 0 ]; then
                 python3 ./src/pipeline/data_graphcreator.py
                 ;;
             '5')
-                python3 ./src/pipeline/train_main.py
+                python3 ./src/pipeline/train_embed2tag.py
                 ;;
             '6')
-                python3 ./src/pipeline/train_data2vec.py
+                python3 ./src/pipeline/train_embed2catsubcat.py
                 ;;
             '7')
                 python3 ./src/pipeline/train_plotter.py

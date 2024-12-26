@@ -43,9 +43,9 @@ if %errorlevel% equ 0 (
         ) else if %var% == '4' (
             cmd /k python.exe ./src/pipeline/data_graphcreator.py
         ) else if %var% == '5' (
-            cmd /k python.exe ./src/pipeline/train_main.py
+            cmd /k python.exe ./src/pipeline/train_embed2tag.py
         ) else if %var% == '6' (
-            cmd /k python.exe ./src/pipeline/train_data2vec.py
+            cmd /k python.exe ./src/pipeline/train_embed2catsubcat.py
         ) else if %var% == '7' (
             cmd /k python.exe ./src/pipeline/train_plotter.py
         ) else if %var% == '8' (
@@ -66,9 +66,9 @@ if %errorlevel% equ 0 (
         ) else if %var% == '4' (
             python.exe ./src/pipeline/data_graphcreator.py
         ) else if %var% == '5' (
-            python.exe ./src/pipeline/train_main.py
+            python.exe ./src/pipeline/train_embed2tag.py
         ) else if %var% == '6' (
-            python.exe ./src/pipeline/train_data2vec.py
+            python.exe ./src/pipeline/train_embed2catsubcat.py
         ) else if %var% == '7' (
             python.exe ./src/pipeline/train_plotter.py
         ) else if %var% == '8' (

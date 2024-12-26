@@ -28,17 +28,17 @@ class MetricsVisualizer:
         else:
             self.path_to_save_plots = os.path.join(project_path, env.__getattr__("PLOTS_PATH"))
 
-        if task == "main":
-            self.path_to_metrics = os.path.join(self.path_to_metrics, "main")
-            self.path_to_save_plots = os.path.join(self.path_to_save_plots, "train_main")
-        elif task == "data2vec":
-            self.path_to_metrics = os.path.join(self.path_to_metrics, "data2vec")
-            self.path_to_save_plots = os.path.join(self.path_to_save_plots, "train_data2vec")
+        if task == "embed2tag":
+            self.path_to_metrics = os.path.join(self.path_to_metrics, "embed2tag")
+            self.path_to_save_plots = os.path.join(self.path_to_save_plots, "train_embed2tag")
+        elif task == "embed2catsubcat":
+            self.path_to_metrics = os.path.join(self.path_to_metrics, "embed2catsubcat")
+            self.path_to_save_plots = os.path.join(self.path_to_save_plots, "train_embed2catsubcat")
         elif task is None:
             self.path_to_metrics = self.path_to_metrics
             self.path_to_save_plots = self.path_to_metrics
         else:
-            raise NotImplementedError("main or autoencoder or None")
+            raise NotImplementedError("embed2tag or embed2catsubcat or none")
 
         os.makedirs(self.path_to_metrics, exist_ok=True)
         os.makedirs(self.path_to_save_plots, exist_ok=True)
