@@ -344,6 +344,8 @@ class VideoTagInference:
             tags = decoded_sequence.split(';')  # Разделяем по точке с запятой
             if seq == '':
                 continue
+            if seq == ' ':
+                continue
             predicted_tags.extend(tags)  # Добавляем все теги в общий список
 
         # Убираем дубликаты
