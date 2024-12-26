@@ -1,67 +1,71 @@
 import { Box, Flex, Text, Button, FormControl, Input } from "@chakra-ui/react";
+import { useBreakpointValue } from "@chakra-ui/react";
+import { useState } from "react";
+import useWindowDimensions from "../hooks/window_dimensions";
 
+const ContentSection = ({ onFetch }) => {
+  const { height } = useWindowDimensions();
+  const [url, setUrl] = useState(""); // Состояние для URL
+  const buttonText = useBreakpointValue({
+    base: "What about it?",
+    sm: "About it?",
+  });
 
-const ContentSection = () => {
-
+  const handleFetch = () => {
+    if (url.trim()) {
+      onFetch(url); // Передаем URL в родительский компонент
+    }
+  };
 
   return (
-    <Box position="absolute" width="954px" height="380px" left="350px" top="230px">
-      {/* Заголовок */}
-      <Flex direction="column" align="flex-start" gap="50px">
-
+    <Box maxW="840px" width="100%" position="relative" bg="#ffffff" p={{ base: "20px", sm: "30px" }}>
+      <Flex direction="column" align="flex-start" gap={height * 0.045}>
         <Text
-          width="660px"
-          height="80px"
+          width={{ base: "100%", sm: "100%" }}
           fontFamily="Montserrat"
           fontWeight="700"
-          fontSize="32px !important"
+          fontSize={{ base: "24px", sm: "32px" }}
           lineHeight="46px"
           color="#023BA3"
         >
-            Too lazy to watch the video? Let's say what it's about
+          Too lazy to watch the video? Let's say what it's about
         </Text>
-
-        {/* Описание */}
         <Text
-          width="600px"
-          height="88px"
+          width={{ base: "100%", sm: "100%" }}
           fontFamily="Montserrat"
           fontWeight="500"
-          fontSize="18px"
+          fontSize={{ base: "16px", sm: "18px" }}
           lineHeight="22px"
           color="#1D1D1D"
         >
-            NaRuTagAI - allows you to automate the generation of hierarchical tags for videos using multimodal
-            artificial intelligence. The system uses visual, audio and text information to make recommendations
-            the most suitable tags.
+          NaRuTagAI - allows you to automate the generation of hierarchical tags for videos using multimodal
+          artificial intelligence. The system uses visual, audio, and text information to make recommendations
+          for the most suitable tags.
         </Text>
-
-        {/* Поле ввода и кнопка */}
-        <Flex direction="row" align="center" gap="0px" width="850px" height="60px">
-
-            {/* Поле ввода URL */}
-            <FormControl id="URL" isRequired>
-                <Input
-                    width="610px"
-                    height="60px"
-                    border="4px solid #4B8BFC"
-                    borderRadius="16px"
-                    placeholder="Enter URL here"
-                    paddingLeft="20px"
-                    bg="#FFFFFF"
-                    _placeholder={{
-                        fontFamily: "Montserrat",
-                        fontWeight: "500",
-                        fontSize: "18px",
-                        lineHeight: "22px",
-                        color: "#1D1D1D"
-                    }}
-                />
-            </FormControl>
-
-          {/* Кнопка */}
+        <Flex direction={{ base: "column", sm: "row" }} align="flex-start" gap="20px" w="100%">
+          <FormControl id="URL" isRequired>
+            <Input
+              value={url}
+              onChange={(e) => setUrl(e.target.value)} // Управляем вводом URL
+              width={{ base: "100%", sm: "100%" }}
+              height="60px"
+              border="4px solid #4B8BFC"
+              borderRadius="16px"
+              placeholder="Enter URL here"
+              paddingLeft="20px"
+              bg="#FFFFFF"
+              _placeholder={{
+                fontFamily: "Montserrat",
+                fontWeight: "500",
+                fontSize: "18px",
+                lineHeight: "22px",
+                color: "#1D1D1D",
+              }}
+            />
+          </FormControl>
           <Button
-            width="240px"
+            onClick={handleFetch} // Обработчик клика
+            width={{ base: "100%", sm: "240px" }}
             height="60px"
             background="#4B8BFC"
             borderRadius="16px"
@@ -72,7 +76,7 @@ const ContentSection = () => {
             color="#FFFFFF"
             _hover={{ background: "#376fcb" }}
           >
-              And what is it about?
+            {buttonText}
           </Button>
         </Flex>
       </Flex>
