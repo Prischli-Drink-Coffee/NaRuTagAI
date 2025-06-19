@@ -4,7 +4,7 @@ const TagSection = ({ video }) => {
   return (
     <Box maxW="840px" width="100%" position="relative">
       <Box position="relative" bg="#ffffff" p={{ base: "20px", sm: "40px" }}>
-        {/* Заголовок */}
+        {/* пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ */}
         <Text
           width="100%"
           fontFamily="Montserrat"
@@ -14,19 +14,19 @@ const TagSection = ({ video }) => {
           color="#023BA3"
           mb="20px"
         >
-          As we understand, this is about...
+          РџРѕС…РѕР¶Рµ СЌС‚Рѕ РІРёРґРµРѕ РѕР± СЌС‚РѕРј:
         </Text>
 
-        {/* Рендер иерархии */}
+        {/* пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ */}
         <VStack
           align="flex-start"
           spacing="20px"
           width="100%"
-          pl={{ base: "10px", sm: "20px" }} // Отступы для всей структуры
+          pl={{ base: "10px", sm: "20px" }} // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         >
           {Object.entries(video).map(([category, subCategories]) => (
             <Box key={category} width="100%">
-              {/* Категория */}
+              {/* пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ */}
               <Text
                 fontFamily="Montserrat"
                 fontWeight="700"
@@ -38,11 +38,11 @@ const TagSection = ({ video }) => {
                 {category}
               </Text>
 
-              {/* Подкатегории */}
+              {/* пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ */}
               <VStack align="flex-start" spacing="16px" pl="20px">
                 {Object.entries(subCategories).map(([subCategory, tags]) => (
                   <Box key={subCategory} width="100%">
-                    {/* Подкатегория */}
+                    {/* пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ */}
                     <Text
                       fontFamily="Montserrat"
                       fontWeight="600"
@@ -54,14 +54,14 @@ const TagSection = ({ video }) => {
                       {subCategory}
                     </Text>
 
-                    {/* Теги */}
+                    {/* пїЅпїЅпїЅпїЅ */}
                     <Flex
                       direction="row"
                       gap="10px"
                       flexWrap="wrap"
-                      pl="20px" // Отступ для тегов
+                      pl="20px" // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                     >
-                      {/* Проверяем, является ли tags массивом */}
+                      {/* пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ tags пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ */}
                       {(Array.isArray(tags) ? tags : []).map((tag, index) => (
                         <Box
                           key={index}

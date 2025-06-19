@@ -13,7 +13,7 @@ const TagCloud = () => {
         >
 
         <VStack spacing="41" mt="100px">
-            {/* Заголовок компонента */}
+            {/* пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ */}
             <Text
                 fontFamily="Montserrat"
                 fontWeight="700"
@@ -21,10 +21,10 @@ const TagCloud = () => {
                 lineHeight="39px"
                 color="#023BA3"
             >
-               NaRuTagAI - it's about video tags
+               NaRuTagAI - Р­С‚Рѕ РїСЂРѕ РІРёРґРµРѕ С‚РµРіРё
             </Text>
 
-            {/* Блок с тегами */}
+            {/* пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ */}
             <Flex
                 display="flex"
                 flexDirection="row"
@@ -35,7 +35,7 @@ const TagCloud = () => {
                 gap="10px"
                 width="417px"
             >
-                {/* Список тегов */}
+                {/* пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ */}
                 {[
                     { text: "Artificial Intelligence System", width: "403px" },
                     { text: "Vector search", width: "215px" },
