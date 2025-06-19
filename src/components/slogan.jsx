@@ -13,7 +13,7 @@ const TagCloud = () => {
         >
 
         <VStack spacing="55" mt="100px">
-            {/* ��������� ���������� */}
+            {/* ��������� ���������� */}
             <Text
                 fontFamily="Montserrat"
                 fontWeight="700"
@@ -24,7 +24,7 @@ const TagCloud = () => {
                NaRuTagAI - it's about video tags
             </Text>
 
-            {/* �������������� ����� */}
+            {/* �������������� ����� */}
             <Text
                 fontFamily="Montserrat"
                 fontWeight="500"
@@ -34,7 +34,7 @@ const TagCloud = () => {
                 textAlign="center"
                 maxWidth="400px"
             >
-               The system will automatically identify key aspects of the video and generate a list of suitable tags
+               Система NaRuTagAI автоматически генерирует теги для видео, используя передовые технологии искусственного интеллекта. Она анализирует содержание видео, извлекает ключевые моменты и создает релевантные теги, что значительно упрощает процесс поиска и организации видео-контента.
             </Text>
             
         </VStack>

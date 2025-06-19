@@ -1,45 +1,62 @@
-import { VStack, Box, Text } from "@chakra-ui/react";
+import { VStack, Box, Text, Spinner, useToast, Icon } from "@chakra-ui/react";
+import { motion } from "framer-motion";
 import useWindowDimensions from "../hooks/window_dimensions";
 import ContentSection from "../components/maincontent";
 import TagSection from "../components/tagsectionmain";
 import { sendInference } from "../API/services/inference_services";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { FiLink } from "react-icons/fi";
 
+// РЎРѕР·РґР°РµРј Р°РЅРёРјРёСЂРѕРІР°РЅРЅС‹Рµ РєРѕРјРїРѕРЅРµРЅС‚С‹ СЃ РїРѕРјРѕС‰СЊСЋ motion
+const MotionBox = motion(Box);
+const MotionVStack = motion(VStack);
 
 const MainPage = () => {
   const { height } = useWindowDimensions();
-  const [response, setResponse] = useState(null); // Состояние для ответа от API
-  const [error, setError] = useState(null); // Состояние для ошибок
+  const [response, setResponse] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const toast = useToast();
 
-  // Функция для получения тегов с сервера
   const fetchTags = async (url) => {
+    setIsLoading(true);
+    setResponse(null); // РЎР±СЂР°СЃС‹РІР°РµРј РїСЂРµРґС‹РґСѓС‰РёР№ СЂРµР·СѓР»СЊС‚Р°С‚
     try {
       const data = await sendInference(url);
       console.log("Inference response:", data);
-      setResponse(data); // Сохраняем преобразованные данные в состояние
+      setResponse(data);
     } catch (err) {
       console.error("Failed to fetch inference data:", err);
-      setError(err); // Сохраняем ошибку в состоянии
+      // РџРѕРєР°Р·С‹РІР°РµРј РѕС€РёР±РєСѓ РІ РІРёРґРµ toast-СѓРІРµРґРѕРјР»РµРЅРёСЏ
+      toast({
+        title: "РћС€РёР±РєР° РїСЂРё Р·Р°РіСЂСѓР·РєРµ",
+        description: "РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ РґР°РЅРЅС‹Рµ. РџСЂРѕРІРµСЂСЊС‚Рµ URL РІРёРґРµРѕ Рё РїРѕРїСЂРѕР±СѓР№С‚Рµ СЃРЅРѕРІР°.",
+        status: "error",
+        duration: 7000,
+        isClosable: true,
+        position: "top",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
+  
+  // РђРЅРёРјР°С†РёРѕРЅРЅС‹Рµ РІР°СЂРёР°РЅС‚С‹ РґР»СЏ framer-motion
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { staggerChildren: 0.1, delayChildren: 0.2 }
+    },
+  };
 
-  // Эффект для обработки ошибки
-  useEffect(() => {
-    if (error) {
-      // В случае ошибки устанавливаем ответ с деталями ошибки
-      setResponse({
-        Error: {
-          Details: [
-            "Failed fetch data",
-            "Check video URL"
-          ]
-        }
-      });
-    }
-  }, [error]); // Эффект срабатывает при изменении ошибки
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
 
   return (
-    <VStack
+    <MotionVStack
       minH="100vh"
       width="100%"
       align="center"
@@ -47,30 +64,58 @@ const MainPage = () => {
       bg="#ffffff"
       padding={[4, 8, 16]}
       spacing={["16px", "20px", "30px"]}
-      mt={["-40px", "-60px", "-80px"]}
-      flexGrow={1}
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
     >
-      <Box
-        mt={["20px", "40px", "80px"]}
+      <MotionBox
         width="100%"
-        maxW="1200px"
+        maxW="1000px" // РЈРјРµРЅСЊС€Р°РµРј РјР°РєСЃРёРјР°Р»СЊРЅСѓСЋ С€РёСЂРёРЅСѓ Р±Р»РѕРєР°
         display="flex"
         flexDirection="column"
         alignItems="center"
-        bg="#ffffff"
+        bg="rgba(255, 255, 255, 0.6)"
+        backdropFilter="blur(10px)"
+        border="1px solid rgba(0, 0, 0, 0.1)"
+        borderRadius="2xl"
+        boxShadow="xl"
+        p={[6, 8, 12]}
+        variants={itemVariants}
       >
-        <ContentSection onFetch={fetchTags} />
-        <Box mt={height > 600 ? height * 0.05 : "20px"}>
-          {response ? (
-            <TagSection video={response} />
+        <ContentSection onFetch={fetchTags} isLoading={isLoading} />
+        
+        <Box mt={height > 600 ? height * 0.05 : "30px"} minH="150px">
+          {isLoading ? (
+            <VStack spacing={4}>
+              <Spinner
+                thickness="4px"
+                speed="0.65s"
+                emptyColor="gray.200"
+                color="blue.500"
+                size="xl"
+              />
+              <Text fontSize="lg" color="gray.600">РђРЅР°Р»РёР·РёСЂСѓРµРј РІРёРґРµРѕ...</Text>
+            </VStack>
+          ) : response ? (
+            <MotionBox
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <TagSection video={response} />
+            </MotionBox>
           ) : (
-            <Text fontSize="18px" color="#666">
-              Enter a video URL to see tags.
-            </Text>
+            <VStack spacing={4} color="gray.500" textAlign="center">
+              <Icon as={FiLink} boxSize="40px" />
+              <Text fontSize="xl" fontWeight="medium">
+                Р’СЃС‚Р°РІСЊС‚Рµ URL СЃСЃС‹Р»РєСѓ РЅР° РІРёРґРµРѕ Rutube
+              </Text>
+              <Text>Р§С‚РѕР±С‹ РїРѕР»СѓС‡РёС‚СЊ СЃРїРёСЃРѕРє С‚РµРіРѕРІ</Text>
+            </VStack>
           )}
         </Box>
-      </Box>
-    </VStack>
+      </MotionBox>
+    </MotionVStack>
   );
 };
 

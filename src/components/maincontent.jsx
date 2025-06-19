@@ -5,17 +5,17 @@ import useWindowDimensions from "../hooks/window_dimensions";
 
 const ContentSection = ({ onFetch }) => {
   const { height } = useWindowDimensions();
-  const [url, setUrl] = useState(""); // Состояние для URL
-  const [isLoading, setIsLoading] = useState(false); // Состояние для индикатора загрузки
+  const [url, setUrl] = useState(""); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ URL
+  const [isLoading, setIsLoading] = useState(false); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
   const buttonText = useBreakpointValue({
-    base: "What about it?",
-    sm: "About it?",
+    base: "РќСѓ Рё РїСЂРѕ С‡С‚Рѕ С‚Р°Рј?",
+    sm: "Р—Р°С‚РµРіР°С‚СЊ?",
   });
 
   const handleFetch = () => {
     if (url.trim()) {
-      setIsLoading(true); // Устанавливаем состояние загрузки в true
-      onFetch(url).finally(() => setIsLoading(false)); // После завершения обработки выключаем индикатор загрузки
+      setIsLoading(true); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ true
+      onFetch(url).finally(() => setIsLoading(false)); // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     }
   };
 
@@ -30,7 +30,7 @@ const ContentSection = ({ onFetch }) => {
           lineHeight="46px"
           color="#023BA3"
         >
-          Too lazy to watch the video? Let's say what it's about
+          Р›РµРЅСЊ СЃРјРѕС‚СЂРµС‚СЊ РІРёРґРµРѕ? Р”Р°РІР°Р№С‚Рµ РіР»СЏРЅРµРј, РїСЂРѕ С‡С‚Рѕ РѕРЅРѕ
         </Text>
         <Text
           width={{ base: "100%", sm: "100%" }}
@@ -40,20 +40,18 @@ const ContentSection = ({ onFetch }) => {
           lineHeight="22px"
           color="#1D1D1D"
         >
-          NaRuTagAI - allows you to automate the generation of hierarchical tags for videos using multimodal
-          artificial intelligence. The system uses visual, audio, and text information to make recommendations
-          for the most suitable tags.
+          РҐРІР°С‚РёС‚ РіР°РґР°С‚СЊ СЃ С‚РµРіР°РјРё! РќР°С€Р° РЅРµР№СЂРѕСЃРµС‚СЊ РїСЂРѕР°РЅР°Р»РёР·РёСЂСѓРµС‚ РІР°С€Рµ РІРёРґРµРѕ, РІС‹РґРµР»РёС‚ РєР»СЋС‡РµРІС‹Рµ РјРѕРјРµРЅС‚С‹ Рё СЃРѕР·РґР°СЃС‚ РёРґРµР°Р»СЊРЅС‹Рµ С‚РµРіРё РґР»СЏ РјР°РєСЃРёРјР°Р»СЊРЅРѕРіРѕ РѕС…РІР°С‚Р°. РћРґРёРЅ РєР»РёРє вЂ” Рё РІР°С€ РєРѕРЅС‚РµРЅС‚ СѓРІРёРґСЏС‚ РІСЃРµ.
         </Text>
         <Flex direction={{ base: "column", sm: "row" }} align="flex-start" gap="20px" w="100%">
           <FormControl id="URL" isRequired>
             <Input
               value={url}
-              onChange={(e) => setUrl(e.target.value)} // Управляем вводом URL
+              onChange={(e) => setUrl(e.target.value)} // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ URL
               width={{ base: "100%", sm: "100%" }}
               height="60px"
               border="4px solid #4B8BFC"
               borderRadius="16px"
-              placeholder="Enter URL here"
+              placeholder="Р’СЃС‚Р°РІСЊ РІ РјРµРЅСЏ СЃСЃС‹Р»РѕС‡РєСѓ, СЂРѕРґРЅРµРЅСЊРєРёР№"
               paddingLeft="20px"
               bg="#FFFFFF"
               _placeholder={{
@@ -66,7 +64,7 @@ const ContentSection = ({ onFetch }) => {
             />
           </FormControl>
           <Button
-            onClick={handleFetch} // Обработчик клика
+            onClick={handleFetch} // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             width={{ base: "100%", sm: "240px" }}
             height="60px"
             background="#4B8BFC"
@@ -77,10 +75,10 @@ const ContentSection = ({ onFetch }) => {
             lineHeight="22px"
             color="#FFFFFF"
             _hover={{ background: "#376fcb" }}
-            disabled={isLoading} // Отключаем кнопку, пока идет процесс загрузки
+            disabled={isLoading} // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
           >
             {isLoading ? (
-              <Spinner size="sm" color="white" /> // Показываем спиннер при загрузке
+              <Spinner size="sm" color="white" /> // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             ) : (
               buttonText
             )}
