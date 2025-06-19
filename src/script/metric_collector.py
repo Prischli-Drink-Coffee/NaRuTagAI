@@ -89,7 +89,7 @@ class MetricsVisualizer:
                         files_dict[model_name] = metrics[key_name]
                     else:
                         for key in metrics.keys():
-                            if key.endswith('loss'):
+                            if key.endswith('f1'):
                                 files_dict[model_name] = metrics[key]
                                 self.name_metric = key
 

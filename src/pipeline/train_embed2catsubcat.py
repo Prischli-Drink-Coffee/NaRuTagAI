@@ -177,7 +177,7 @@ class GraduateEmbed2CatSubcat:
         self.optimizer = optim.__dict__[f"{self.name_optimizer}"](self.model.parameters(), lr=self.start_learning_rate)
         # Создание планировщика LR
         # ReduceLROnPlateau уменьшает скорость обучения, когда метрика перестает уменьшаться
-        self.scheduler = ReduceLROnPlateau(self.optimizer, mode='min', patience=2, verbose=True)
+        self.scheduler = ReduceLROnPlateau(self.optimizer, mode='min', patience=2)
 
     def load_checkpoint(self):
         path = os.path.join(self.path_to_weights, f"{self.name_model}.pt")
@@ -239,9 +239,9 @@ class GraduateEmbed2CatSubcat:
                     category_logits, subcategory_logits = self.model(img_emb=images,
                                                                      audio_emb=audios,
                                                                      text_emb=texts)
-                    # loss = (self.cat_criterion(category_logits, cat_labels_one_hot) +
-                    #         self.sub_criterion(subcategory_logits, sub_labels_one_hot)) / 2
-                    loss = self.cat_criterion(category_logits, cat_labels_one_hot)
+                    loss = (self.cat_criterion(category_logits, cat_labels_one_hot) +
+                            self.sub_criterion(subcategory_logits, sub_labels_one_hot)) / 2
+                    # loss = self.cat_criterion(category_logits, cat_labels_one_hot)
 
                     self.optimizer.zero_grad()
 
@@ -293,9 +293,9 @@ class GraduateEmbed2CatSubcat:
                         category_logits, subcategory_logits = self.model(img_emb=images,
                                                                          audio_emb=audios,
                                                                          text_emb=texts)
-                        # loss = (self.cat_criterion(category_logits, cat_labels_one_hot) +
-                        #         self.sub_criterion(subcategory_logits, sub_labels_one_hot)) / 2
-                        loss = self.cat_criterion(category_logits, cat_labels_one_hot)
+                        loss = (self.cat_criterion(category_logits, cat_labels_one_hot) +
+                                self.sub_criterion(subcategory_logits, sub_labels_one_hot)) / 2
+                        # loss = self.cat_criterion(category_logits, cat_labels_one_hot)
 
                         valid_loss += loss.item() * self.batch_size
 

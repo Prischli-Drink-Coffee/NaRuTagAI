@@ -33,17 +33,17 @@ TrainParamEmbed2Tag:
  pretrained_weight_tag: "emelnov/keyT5_tags_custom"
  name_model: 'Embed2TagV1'
  early_stopping: True
- num_beams: 3
+ num_beams: 10
  concat_embed_dim: 3840
- max_length_generation: 15
- tag_similarity: 0.7
- start_learning_rate: 0.00001
- batch_size: 2
+ max_length_generation: 30
+ tag_similarity: 0.5
+ start_learning_rate: 0.000001
+ batch_size: 4
  num_workers: 0
- num_epochs: 1
+ num_epochs: 10
  pin_memory: False
- name_optimizer: "Adam" # SGD, Adam
- val_size: 0.2
+ name_optimizer: "AdamW" # SGD, Adam
+ val_size: 0.01
  test_size: 0.2
  seed: 17
 
@@ -51,7 +51,7 @@ TrainParamEmbed2Tag:
 TrainParamEmbed2CatSubcat:
   use_device: "cuda" # cuda, cpu
   start_learning_rate: 0.00001
-  name_model: 'Embed2CatSubcatv2'
+  name_model: 'Embed2CatSubcatV1'
   num_classes: 43
   num_subclasses: 1024
   list_no_include_cat: None
@@ -59,10 +59,10 @@ TrainParamEmbed2CatSubcat:
   batch_size: 10
   num_workers: 0 # bug then more 0
   pin_memory: False # turn off with cpu
-  num_epochs: 20
-  name_optimizer: "Adam" # SGD, Adam
-  val_size: 0.05
-  test_size: 0.05
+  num_epochs: 10
+  name_optimizer: "AdamW" # SGD, Adam
+  val_size: 0.2
+  test_size: 0.2
   seed: 17
 
 

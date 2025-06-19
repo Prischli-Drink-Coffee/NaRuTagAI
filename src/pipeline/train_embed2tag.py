@@ -174,7 +174,7 @@ class GraduateEmbed2Tag:
             self.optimizer.load_state_dict(self.checkpoint['optimizer_state_dict'])
         # Создание планировщика LR
         # ReduceLROnPlateau уменьшает скорость обучения, когда метрика перестает уменьшаться
-        self.scheduler = ReduceLROnPlateau(self.optimizer, mode='min', patience=2, verbose=True)
+        self.scheduler = ReduceLROnPlateau(self.optimizer, mode='min', patience=2)
 
     # Функция для обучения модели с валидацией
     def train_model(self):
@@ -189,9 +189,6 @@ class GraduateEmbed2Tag:
 
             with tqdm(total=len(self.train_loader)) as pbar_train:
                 for index, batch in enumerate(self.train_loader):
-
-                    if index == 0:
-                        break
 
                     # Распаковка данных
                     video_ids = batch["video_ids"]

@@ -25,18 +25,37 @@ class CustomClassifier(nn.Module):
         self.num_categories = num_categories
         self.num_subcategories = num_subcategories
 
-        self.total_emb_dim = self.img_emb_shape[0] + self.audio_emb_shape[0] + self.text_emb_shape[0]
-        log.info(f"total_emb_dim: {self.total_emb_dim}")
+        self.total_emb_dim = img_emb_shape[0] + audio_emb_shape[0] + text_emb_shape[0]
+        dropout_rate = 0.2
+        self.feature_extractor = nn.Sequential(
+            nn.Linear(self.total_emb_dim, 4096),
+            nn.BatchNorm1d(4096),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate),
+            nn.Linear(4096, 4096),
+            nn.BatchNorm1d(4096),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate),
+            nn.Linear(4096, 4096),
+            nn.BatchNorm1d(4096),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate),
+            nn.Linear(4096, 2048)
+        )
 
-        # Полносвязные слои для обработки признаков
-        self.fc1 = nn.Linear(self.total_emb_dim, 4096)
-        self.fc2 = nn.Linear(4096, 4096)
-        self.fc3 = nn.Linear(4096, 4096)
-        self.fc4 = nn.Linear(4096, 2048)
+        self.category_head = nn.Sequential(
+            nn.ReLU(),
+            nn.Linear(2048, num_categories)
+        )
 
-        # Для категорий и подкатегорий
-        self.subcategory_out = nn.Linear(2048, self.num_subcategories)
-        self.category_out = nn.Linear(self.num_subcategories, self.num_categories)
+        self.subcategory_head = nn.Sequential(
+            nn.ReLU(),
+            nn.Linear(2048 + num_categories, 1024),
+            nn.BatchNorm1d(1024),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate),
+            nn.Linear(1024, num_subcategories)
+        )
 
 
     def forward(self,
@@ -48,17 +67,10 @@ class CustomClassifier(nn.Module):
         # log.info(f"img_hidden.shape: {img_hidden.shape}")
         # log.info(f"audio_hidden.shape: {audio_hidden.shape}")
 
-        # # Конкатенация всех эмбеддингов
         combined_emb = torch.cat([img_emb, audio_emb, text_emb], dim=1)
-
-        # Пропуск через полносвязные слои
-        x = F.relu(self.fc1(combined_emb))
-        x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
-        x = F.relu(self.fc4(x))
-
-        # Получаем логиты для категорий и подкатегорий
-        subcategory_logits = self.subcategory_out(x)
-        category_logits = self.category_out(subcategory_logits)
+        shared_features = self.feature_extractor(combined_emb)
+        category_logits = self.category_head(shared_features)
+        combined_for_subcategory = torch.cat([shared_features, category_logits], dim=1)
+        subcategory_logits = self.subcategory_head(combined_for_subcategory)
 
         return category_logits, subcategory_logits
