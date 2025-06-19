@@ -29,7 +29,7 @@ class VideoTagInference:
     def __init__(self,
                  path_model_t5='emelnov/keyT5_tags_custom',
                  name_model_t5='Embed2TagV1',
-                 name_model_custom='Embed2CatSubcatv2',
+                 name_model_custom='Embed2CatSubcatV1',
                  image_model_path='microsoft/LLM2CLIP-Openai-B-16',
                  clip_image_processor='openai/clip-vit-base-patch16',
                  text_model_path='BAAI/bge-m3',
@@ -58,6 +58,7 @@ class VideoTagInference:
         self.model_t5 = AutoModelForSeq2SeqLM.from_pretrained(self.path_model_t5).to(self.device)
 
         self.model_custom = CustomClassifier()
+        self.model_custom.eval()
 
         self.batch_size = 4
         self.image_size = 224

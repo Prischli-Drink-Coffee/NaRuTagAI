@@ -68,6 +68,7 @@ class CustomClassifier(nn.Module):
         # log.info(f"audio_hidden.shape: {audio_hidden.shape}")
 
         combined_emb = torch.cat([img_emb, audio_emb, text_emb], dim=1)
+        combined_emb = combined_emb.to(device=img_emb.device, dtype=img_emb.dtype)
         shared_features = self.feature_extractor(combined_emb)
         category_logits = self.category_head(shared_features)
         combined_for_subcategory = torch.cat([shared_features, category_logits], dim=1)
